@@ -32,10 +32,25 @@
                                   dragDropSupport="true"
                                   multiple="true"
                                   auto="true"
-                                  maxFileSize="5242880"
-                                  update="uploadNavLoader" />
+                                  maxFileSize="10737418240"
+                                  allowTypes="/(\.|\/)(gif|jpe?g|png|pdf|doc|docx|xls|xlsx|ppt|pptx|txt|zip|rar|mp4|avi|mov)$/"
+                                  invalidSizeMessage="Fichier trop volumineux (max 10Go)"
+                                  invalidFileMessage="Type de fichier non autorisé"
+                                  uploadLabel="⬆️ Téléverser"
+                                  cancelLabel="Annuler"
+                                  clearAllLabel="Tout effacer"
+                                  update="driveContainerForm messages"
+                                  onstart="openUploadModal();"
+                                  oncomplete="closeUploadModal(); console.log('✅ Upload terminé')"
+                                  onerror="closeUploadModal(); console.log('❌ Erreur upload')"/>
 
-                    <p:messages id="uploadNavLoader" autoUpdate="true" update="messages filesTable breadcrumbForm driveContainerForm" />
+                    <!-- 🔹 Alternative: Polling pour mise à jour automatique -->
+                    <p:poll interval="2"
+                            update="driveContainerForm"
+                            active="false"
+                            widgetVar="refreshPoll"
+                            oncomplete="PF('refreshPoll').stop();" />
+
 
 
 
@@ -168,6 +183,47 @@
 
     <!--        Rename / Create Modal-->
 
+    <!-- ========================== MODALS ========================== -->
+
+    <!-- Modal de progression d'upload -->
+    <div class="modalUpload" id="modal-upload-progress" role="dialog" aria-modal="true" aria-labelledby="modal-upload-title" aria-hidden="true">
+        <div class="modal__overlay"></div>
+        <div class="modal__dialog modal__dialog--upload">
+            <div class="modal__header">
+                <h2 class="modal__title" id="modal-upload-title">
+                    <span class="upload-icon">⬆️</span>
+                    Téléversement en cours...
+                </h2>
+            </div>
+            <div class="modal__body">
+                <div class="upload-progress-container">
+                    <div class="progress-info">
+                        <div class="progress-text" id="upload-file-name">Préparation du fichier...</div>
+                        <div class="progress-percentage" id="upload-percentage">0%</div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="upload-progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="upload-details">
+                        <div class="upload-speed" id="upload-speed">Vitesse: -- KB/s</div>
+                        <div class="upload-eta" id="upload-eta">Temps restant: --</div>
+                    </div>
+                </div>
+                <div class="upload-status">
+                    <div class="status-message" id="upload-status-message">
+                        <span class="status-icon">🔄</span>
+                        Initialisation...
+                    </div>
+                </div>
+            </div>
+            <div class="modal__footer">
+                <button class="btn btn--ghost" id="cancel-upload-btn" onclick="cancelUpload()">
+                    ❌ Annuler
+                </button>
+            </div>
+        </div>
+    </div>
+
 
     <h:form prependId="false" enctype="multipart/form-data">
 
@@ -261,122 +317,84 @@
 
 
     <h:outputScript name="js/drive.js"/>
-    <script>
-        // 🔹 Validation côté client + lancement de l'upload
-        function validateAndUpload(input) {
-            const file = input.files[0];
-            if (!file) return;
-
-            // Validation de la taille (10 Go = 10 * 1024 * 1024 * 1024 bytes)
-            const maxSize = 10 * 1024 * 1024 * 1024;
-
-            if (file.size > maxSize) {
-                const maxSizeFormatted = formatFileSize(maxSize);
-                const fileSizeFormatted = formatFileSize(file.size);
-
-                alert(`❌ Fichier trop volumineux!\n\n` +
-                    `Taille du fichier: ${fileSizeFormatted}\n` +
-                    `Taille maximum autorisée: ${maxSizeFormatted}`);
-
-                // Reset du champ
-                input.value = '';
-                return;
-            }
-
-            // Validation du type de fichier (optionnel)
-            const forbiddenExtensions = ['.exe', '.bat', '.com', '.scr', '.pif'];
-            const fileName = file.name.toLowerCase();
-            const hasForbiddenExtension = forbiddenExtensions.some(ext => fileName.endsWith(ext));
-
-            if (hasForbiddenExtension) {
-                alert(`❌ Type de fichier non autorisé!\n\nLes fichiers exécutables ne sont pas acceptés pour des raisons de sécurité.`);
-                input.value = '';
-                return;
-            }
-
-            // Confirmation pour les gros fichiers (> 1 Go)
-            if (file.size > 1024 * 1024 * 1024) {
-                const fileSizeFormatted = formatFileSize(file.size);
-                if (!confirm(`⚠️ Fichier volumineux détecté!\n\n` +
-                    `Taille: ${fileSizeFormatted}\n\n` +
-                    `L'upload peut prendre du temps. Continuer?`)) {
-                    input.value = '';
-                    return;
-                }
-            }
-
-            // Lancer l'upload
-            console.log('🔄 Lancement de l\'upload:', file.name, formatFileSize(file.size));
-            document.getElementById('uploadBtn').click();
-        }
-
-        // 🔹 Fonction utilitaire pour formater la taille
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 B';
-
-            const k = 1024;
-            const sizes = ['B', 'Ko', 'Mo', 'Go', 'To'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-        }
-
-        // 🔹 Gestion de la fermeture de la page pendant l'upload
-        window.addEventListener('beforeunload', function(e) {
-            // Vérifier si un upload est en cours (vous devez adapter cette condition)
-            if (document.querySelector('.upload-progress-container[style*="display:block"]')) {
-                e.preventDefault();
-                e.returnValue = 'Un upload est en cours. Êtes-vous sûr de vouloir quitter?';
-                return e.returnValue;
-            }
-        });
-    </script>
+    <h:outputScript name="js/driveProgress.js"/>
 
 
     <style>
-        /* 🎨 Styles pour la barre de progression */
+        /* ======================== STYLES POUR LE MODAL D'UPLOAD ======================== */
+
+        .ui-fileupload-content, .ui-widget-content{
+            display: none!important;
+        }
+
+        .modal__dialog--upload {
+            max-width: 500px;
+            min-width: 400px;
+        }
+
+        .modal__header {
+            padding: 20px 20px 0 20px;
+            border-bottom: none;
+        }
+
+        .upload-icon {
+            font-size: 1.2em;
+            margin-right: 8px;
+        }
+
         .upload-progress-container {
-            margin: 15px 0;
-            padding: 15px;
+            margin: 20px 0;
+            padding: 20px;
             border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            background: #f8f9fa;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
         .progress-info {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             font-size: 0.9em;
         }
 
         .progress-text {
             color: #555;
             flex: 1;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-right: 10px;
         }
 
         .progress-percentage {
             font-weight: bold;
             color: #007bff;
-            margin-left: 10px;
+            font-size: 1.1em;
+            min-width: 50px;
+            text-align: right;
         }
 
         .progress-bar {
             width: 100%;
-            height: 20px;
+            height: 24px;
             background-color: #e9ecef;
-            border-radius: 10px;
+            border-radius: 12px;
             overflow: hidden;
             position: relative;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 12px;
         }
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #007bff, #28a745);
-            border-radius: 10px;
+            background: linear-gradient(90deg, #007bff 0%, #28a745 50%, #17a2b8 100%);
+            border-radius: 12px;
             transition: width 0.3s ease;
             position: relative;
+            box-shadow: 0 2px 4px rgba(0,123,255,0.3);
         }
 
         .progress-fill::after {
@@ -392,7 +410,7 @@
                     rgba(255, 255, 255, 0.4),
                     transparent
             );
-            animation: shimmer 1.5s infinite;
+            animation: shimmer 2s infinite;
         }
 
         @keyframes shimmer {
@@ -400,21 +418,151 @@
             100% { transform: translateX(100%); }
         }
 
-        /* Style pour les boutons désactivés */
-        .btn[disabled] {
-            opacity: 0.6;
-            cursor: not-allowed !important;
-            pointer-events: none;
+        .upload-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 8px;
         }
 
-        /* Animation pour le bouton d'upload en cours */
-        .btn:has(.uploading-text) {
-            animation: pulse 1.5s infinite;
+        .upload-speed, .upload-eta {
+            padding: 4px 8px;
+            background: #f1f3f4;
+            border-radius: 6px;
+            font-family: monospace;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+        .upload-status {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+        }
+
+        .status-message {
+            font-size: 0.9em;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .status-message--loading {
+            color: #007bff;
+            border-left-color: #007bff;
+        }
+
+        .status-message--uploading {
+            color: #28a745;
+            border-left-color: #28a745;
+        }
+
+        .status-message--success {
+            color: #28a745;
+            border-left-color: #28a745;
+        }
+
+        .status-message--error {
+            color: #dc3545;
+            border-left-color: #dc3545;
+        }
+
+        .status-icon {
+            margin-right: 8px;
+        }
+
+        /* Animation pour le modal d'upload */
+        #modal-upload-progress .modal__dialog {
+            animation: slideInUp 0.3s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                transform: translate(-50%, -40%) scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Style pour le bouton d'annulation */
+        #cancel-upload-btn {
+            transition: all 0.2s ease;
+        }
+
+        #cancel-upload-btn:hover {
+            background-color: #dc3545;
+            color: white;
+            border-color: #dc3545;
+        }
+
+        /* Responsive pour le modal d'upload */
+        @media (max-width: 480px) {
+            .modal__dialog--upload {
+                min-width: 90vw;
+                max-width: 90vw;
+            }
+
+            .upload-details {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+
+        /* Style général pour les modals */
+        .modalUpload {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal__overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal__dialog {
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            z-index: 1001;
+        }
+
+        .modal__title {
+            margin: 0;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 1.25em;
+            font-weight: 600;
+        }
+
+        .modal__body {
+            padding: 20px;
+        }
+
+        .modal__footer {
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
         }
     </style>
 

@@ -156,17 +156,47 @@ public class DriveDAO implements Serializable {
 
     public void handleUploadFile(FileUploadEvent event) {
         UploadedFile file = event.getFile();
-        try (InputStream in = file.getInputStream()) {
-            Path target = Paths.get(currentPath, resolveConflictName(file.getFileName()));
-            Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
+
+        if (file == null) {
             FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Upload réussi", "Fichier : " + file.getFileName()));
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erreur", "Aucun fichier reçu"));
+            return;
+        }
+
+        try {
+            // Validation de taille
+            if (file.getSize() > MAX_FILE_SIZE) {
+                String maxSizeFormatted = formatFileSize(MAX_FILE_SIZE);
+                String fileSizeFormatted = formatFileSize(file.getSize());
+                FacesContext.getCurrentInstance().addMessage(null,
+                        new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erreur",
+                                "Fichier trop volumineux (" + fileSizeFormatted + "). Max: " + maxSizeFormatted));
+                return;
+            }
+
+            validateCurrentPathOrThrowAndReset(); // Vérification du chemin
+
+            String fileName = file.getFileName();
+            System.out.println("--[UPLOAD] " + currentPath + "\\" + fileName);
+
+            try (InputStream in = file.getInputStream()) {
+                Path target = Paths.get(currentPath, resolveConflictName(fileName));
+                Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            // 🔹 Message de succès
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Upload réussi",
+                            "Fichier uploadé : " + fileName));
+
+            System.out.println("✅ Upload réussi : " + fileName);
+
         } catch (IOException e) {
             FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erreur upload", e.getMessage()));
+            System.err.println("❌ Erreur upload : " + e.getMessage());
         }
     }
-
 
     private void uploadWithProgress(InputStream inputStream, Path target, long totalSize) throws IOException {
         final int BUFFER_SIZE = 8192; // 8KB buffer
