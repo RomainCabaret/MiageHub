@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:p="primefaces"
+>
+<h:head>
+    <title>JSF Drive</title>
+    <h:outputStylesheet library="css" name="drive.css"/>
+</h:head>
+<h:body>
+    <div class="drive" id="drive-root">
+        <aside class="drive__sidebar" aria-label="Barre latérale">
+            <div class="drive__brand">
+                <p class="drive__brand-sub">Mon espace</p>
+                <h1 class="drive__brand-title">Mon Drive</h1>
+            </div>
+
+            <h:form prependId="false" enctype="multipart/form-data" id="driveUploadForm">
+
+                <div class="drive__actions">
+                    <button class="btn btn--primary btn--block" id="btn-new-file">
+                        ➕ Nouveau fichier
+                    </button>
+                    <div class="btn btn--ghost btn--block" id="btn-new-folder">
+                        📁 Nouveau dossier
+                    </div>
+
+                    <p:fileUpload listener="#{driveDAO.handleUploadFile}"
+                                  mode="advanced"
+                                  dragDropSupport="true"
+                                  multiple="true"
+                                  auto="true"
+                                  maxFileSize="5242880"
+                                  update="uploadNavLoader" />
+
+                    <p:messages id="uploadNavLoader" autoUpdate="true" update="messages filesTable breadcrumbForm driveContainerForm" />
+
+
+
+                    <input type="file" id="file-input" class="sr-only" multiple="multiple"/>
+                </div>
+            </h:form>
+
+            <section class="drive__stats" aria-labelledby="resume-title">
+                <h2 class="drive__stats-title" id="resume-title">Résumé</h2>
+                <div class="drive__stats-grid">
+                    <div class="drive__stats-item">
+                        <div class="drive__stats-label">Fichiers</div>
+                        <div class="drive__stats-value" id="stat-files">${driveDAO.files.size()}</div>
+                    </div>
+                    <div class="drive__stats-item">
+                        <div class="drive__stats-label">Dossiers</div>
+                        <div class="drive__stats-value" id="stat-folders">${driveDAO.folders.size()}</div>
+                    </div>
+                </div>
+            </section>
+        </aside>
+
+        <main class="drive__main" aria-label="Contenu principal">
+            <div class="drive__toolbar">
+                <div class="breadcrumb">
+                    <h:form id="breadcrumbForm">
+                        <!-- Racine -->
+                        <p:commandLink value="Racine" action="#{driveDAO.navigateToPath('')}"
+                                       update="breadcrumbForm filesTable messages driveContainerForm"/>
+
+                        <!-- Boucle sur chaque dossier -->
+                        <ui:repeat value="#{driveDAO.breadcrumb}" var="part" varStatus="status">
+                            /
+                            <h:panelGroup rendered="#{status.last}">
+                                <!-- Dernier élément, pas cliquable -->
+                                <span>#{part}</span>
+                            </h:panelGroup>
+                            <h:panelGroup rendered="#{!status.last}">
+                                <!-- Cliquable -->
+                                <p:commandLink value="#{part}"
+                                               action="#{driveDAO.navigateToPath(driveDAO.buildPathUpTo(status.index))}"
+                                               update="messages filesTable breadcrumbForm driveContainerForm"/>
+                            </h:panelGroup>
+                        </ui:repeat>
+                    </h:form>
+                </div>
+            </div>
+
+            <h:form prependId="false" enctype="multipart/form-data" id="driveContainerForm">
+
+                <section class="drive__content">
+                    <div
+                            class="drive__grid"
+                            id="file-list"
+                            aria-live="polite"
+                            aria-label="Grille des éléments"
+                    >
+                        <ui:repeat value="#{driveDAO.folders}" var="f" varStatus="loop">
+                            <article class="file-card folder-card">
+                                <div class="file-card__header">
+                                    <div class="file-card__icon file-card__icon--folder">📁</div>
+                                    <div class="file-card__title">#{f}</div>
+                                </div>
+                                <div class="file-card__body"></div>
+                                <div class="file-card__actions">
+                                    <p:commandLink styleClass="btn btn--primary btn--sm openFolderBtn"
+                                                   value="📁 Ouvrir"
+                                                   action="#{driveDAO.openFolder(f)}"
+                                                   update="messages filesTable breadcrumbForm driveContainerForm"
+                                                   process="@this"
+                                    />
+                                    <button class="btn btn--ghost btn--sm btnRenameAction "
+                                            onclick="openRenameModal('#{f}')" type="button">✏️ Renommer
+                                    </button>
+                                </div>
+                            </article>
+                        </ui:repeat>
+
+
+                        <ui:repeat value="#{driveDAO.files}" var="f">
+                            <article class="file-card">
+                                <div class="file-card__header">
+                                    <div class="file-card__icon ">📄</div>
+                                    <div class="file-card__title"> #{f}</div>
+                                </div>
+                                <div class="file-card__body"></div>
+                                <div class="file-card__actions">
+                                    <button class="btn btn--outline btn--sm" type="button">⬇️ Télécharger</button>
+                                    <button class="btn btn--ghost btn--sm btnRenameAction"
+                                            onclick="openRenameModal('#{f}')" type="button">✏️ Renommer
+                                    </button>
+                                    <p:commandButton styleClass="btn btn--primary btn--sm" value="🗑 Supprimer"
+                                                     action="#{driveDAO.delete(f)}"
+                                                     update="messages filesTable breadcrumbForm driveContainerForm"/>
+                                </div>
+                            </article>
+
+                        </ui:repeat>
+
+
+                    </div>
+
+                    <ui:fragment rendered="#{driveDAO.files.size() eq 0 and driveDAO.folders.size() eq 0}">
+                        <div class="drive__empty" id="empty-state" hidden="hidden">
+                            <div>
+                                <div class="drive-empty__icon">📁</div>
+                                <div class="drive-empty__title">Votre Drive est vide</div>
+                                <p class="drive-empty__hint">
+                                    Téléversez des fichiers, ou créez un nouveau fichier/dossier.
+                                    Vous pouvez aussi glisser-déposer des fichiers ici.
+                                </p>
+                                <div class="drive-empty__actions">
+
+                                    <div class="btn btn--ghost btn--block"
+                                         onclick="document.getElementById('hiddenFile').click();">
+                                        ⬆️ Téléverser
+                                    </div>
+
+                                    <div class="btn btn--ghost" id="btn-new-folder-empty">
+                                        📁 Nouveau dossier
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </ui:fragment>
+                </section>
+            </h:form>
+        </main>
+    </div>
+
+    <!--        Rename / Create Modal-->
+
+
+    <h:form prependId="false" enctype="multipart/form-data">
+
+        <div
+                class="modal"
+                id="modal-folder"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="modal-rename-title"
+                aria-hidden="true"
+        >
+            <div class="modal__overlay" data-close-modal="data-close-modal"></div>
+            <div class="modal__dialog">
+                <h2 class="modal__title" id="modal-rename-title">Créer un dossier</h2>
+                <div class="modal__body">
+                    <div class="form-field">
+                        <label for="folder-input" class="label">Nom</label>
+                        <h:inputText
+                                id="folder-input"
+                                class="input"
+                                type="text"
+                                placeholder="Saisissez un nom"
+                                value="#{driveDAO.newFolderName}"
+                        />
+                    </div>
+                </div>
+                <div class="modal__footer">
+                    <button class="btn btn--ghost" data-close-modal="data-close-modal">Annuler</button>
+                    <p:commandButton styleClass="btn btn--primary" action="#{driveDAO.handleCreateFolder}"
+                                     value="Valider" update="messages filesTable breadcrumbForm driveContainerForm"
+                                     data-close-modal="data-close-modal"/>
+                </div>
+            </div>
+        </div>
+    </h:form>
+
+
+    <!-- ============================ -->
+
+
+    <h:form prependId="false" enctype="multipart/form-data">
+
+        <div
+                class="modal"
+                id="modal-rename"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="modal-rename-title"
+                aria-hidden="true"
+        >
+            <div class="modal__overlay" data-close-modal="data-close-modal"></div>
+            <div class="modal__dialog">
+                <h2 class="modal__title" id="modal-rename-title">Nom de l’élément</h2>
+                <div class="modal__body">
+                    <div class="form-field">
+                        <label for="rename-input" class="label">Nom</label>
+                        <h:inputText
+                                style="display: none"
+                                id="old-name-input"
+                                class="input"
+                                type="text"
+                                value="#{driveDAO.renameOldName}"
+                        />
+                        <h:inputText
+                                id="rename-input"
+                                class="input"
+                                type="text"
+                                placeholder="Saisissez un nom"
+                                value="#{driveDAO.renameNewName}"
+                        />
+                    </div>
+                </div>
+                <div class="modal__footer">
+                    <button class="btn btn--ghost" data-close-modal="data-close-modal">Annuler</button>
+
+                    <p:commandButton styleClass="btn btn--primary" value="Valider" action="#{driveDAO.rename}"
+                                     update="messages filesTable breadcrumbForm driveContainerForm"
+                                     data-close-modal="data-close-modal"/>
+
+                </div>
+            </div>
+        </div>
+    </h:form>
+
+    Toasts
+    <div class="toast" id="toast"></div>
+
+    <!--    TAOST PRIMEFACE-->
+
+    <p:growl id="messages" showDetail="true" life="3000"/>
+
+
+    <h:outputScript name="js/drive.js"/>
+    <script>
+        // 🔹 Validation côté client + lancement de l'upload
+        function validateAndUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            // Validation de la taille (10 Go = 10 * 1024 * 1024 * 1024 bytes)
+            const maxSize = 10 * 1024 * 1024 * 1024;
+
+            if (file.size > maxSize) {
+                const maxSizeFormatted = formatFileSize(maxSize);
+                const fileSizeFormatted = formatFileSize(file.size);
+
+                alert(`❌ Fichier trop volumineux!\n\n` +
+                    `Taille du fichier: ${fileSizeFormatted}\n` +
+                    `Taille maximum autorisée: ${maxSizeFormatted}`);
+
+                // Reset du champ
+                input.value = '';
+                return;
+            }
+
+            // Validation du type de fichier (optionnel)
+            const forbiddenExtensions = ['.exe', '.bat', '.com', '.scr', '.pif'];
+            const fileName = file.name.toLowerCase();
+            const hasForbiddenExtension = forbiddenExtensions.some(ext => fileName.endsWith(ext));
+
+            if (hasForbiddenExtension) {
+                alert(`❌ Type de fichier non autorisé!\n\nLes fichiers exécutables ne sont pas acceptés pour des raisons de sécurité.`);
+                input.value = '';
+                return;
+            }
+
+            // Confirmation pour les gros fichiers (> 1 Go)
+            if (file.size > 1024 * 1024 * 1024) {
+                const fileSizeFormatted = formatFileSize(file.size);
+                if (!confirm(`⚠️ Fichier volumineux détecté!\n\n` +
+                    `Taille: ${fileSizeFormatted}\n\n` +
+                    `L'upload peut prendre du temps. Continuer?`)) {
+                    input.value = '';
+                    return;
+                }
+            }
+
+            // Lancer l'upload
+            console.log('🔄 Lancement de l\'upload:', file.name, formatFileSize(file.size));
+            document.getElementById('uploadBtn').click();
+        }
+
+        // 🔹 Fonction utilitaire pour formater la taille
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+
+            const k = 1024;
+            const sizes = ['B', 'Ko', 'Mo', 'Go', 'To'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        // 🔹 Gestion de la fermeture de la page pendant l'upload
+        window.addEventListener('beforeunload', function(e) {
+            // Vérifier si un upload est en cours (vous devez adapter cette condition)
+            if (document.querySelector('.upload-progress-container[style*="display:block"]')) {
+                e.preventDefault();
+                e.returnValue = 'Un upload est en cours. Êtes-vous sûr de vouloir quitter?';
+                return e.returnValue;
+            }
+        });
+    </script>
+
+
+    <style>
+        /* 🎨 Styles pour la barre de progression */
+        .upload-progress-container {
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+
+        .progress-text {
+            color: #555;
+            flex: 1;
+        }
+
+        .progress-percentage {
+            font-weight: bold;
+            color: #007bff;
+            margin-left: 10px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #007bff, #28a745);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(
+                    90deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.4),
+                    transparent
+            );
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Style pour les boutons désactivés */
+        .btn[disabled] {
+            opacity: 0.6;
+            cursor: not-allowed !important;
+            pointer-events: none;
+        }
+
+        /* Animation pour le bouton d'upload en cours */
+        .btn:has(.uploading-text) {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+
+</h:body>
+</html>

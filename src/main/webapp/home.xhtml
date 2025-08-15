@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:f="jakarta.faces.core"
+>
+<h:head>
+    <title>Home</title>
+</h:head>
+<h:body>
+    <h1>Bienvenue sur la page d’accueil !</h1>
+
+
+    <h1>Utilisateurs enregistrés</h1>
+
+    <h:panelGroup rendered="#{empty userController.users}">
+        <h:outputText value="Aucun utilisateur enregistré." style="color: gray;" />
+    </h:panelGroup>
+
+    <h:dataTable value="#{userController.users}" var="user" rendered="#{not empty userController.users}">
+        <h:column>
+            <f:facet name="header">ID</f:facet>
+            #{user.id}
+        </h:column>
+        <h:column>
+            <f:facet name="header">Nom</f:facet>
+            #{user.nom}
+        </h:column>
+        <h:column>
+            <f:facet name="header">Email</f:facet>
+            #{user.email}
+        </h:column>
+    </h:dataTable>
+
+    <h:form>
+        <h:outputLabel for="date" value="Date : " />
+        <h:inputText id="date" value="#{planningController.dateAsUtilDate}">
+            <f:convertDateTime pattern="yyyy-MM-dd" />
+        </h:inputText>
+
+<!--        <h:commandButton value="Charger planning" action="#{planningController.loadPlanning}" />-->
+    </h:form>
+
+    <h:panelGroup rendered="#{not empty planningController.planning}">
+        <ui:repeat value="#{planningController.planning.entrySet()}" var="entry">
+            <h3>📅 #{entry.key}</h3>
+            <h:dataTable value="#{entry.value}" var="cours" border="1">
+                <h:column><f:facet name="header">Horaire</f:facet>#{cours.horaire}</h:column>
+                <h:column><f:facet name="header">Type</f:facet>#{cours.type}</h:column>
+                <h:column><f:facet name="header">Matière</f:facet>#{cours.matiere}</h:column>
+                <h:column><f:facet name="header">Salle</f:facet>#{cours.salle}</h:column>
+                <h:column><f:facet name="header">Groupe</f:facet>#{cours.groupe}</h:column>
+                <h:column><f:facet name="header">Effectif</f:facet>#{cours.nbEtudiants}</h:column>
+            </h:dataTable>
+            <hr/>
+        </ui:repeat>
+    </h:panelGroup>
+
+    <h:panelGroup rendered="#{empty planningController.planning}">
+        <h:outputText value="Aucun planning trouvé ou scraping échoué." style="color:red"/>
+    </h:panelGroup>
+
+
+
+    <h:form>
+        <h:commandButton value="Se déconnecter" action="#{loginBean.logout}" />
+    </h:form>
+
+
+</h:body>
+</html>

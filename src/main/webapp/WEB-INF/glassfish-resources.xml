@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE resources PUBLIC "-//GlassFish.org//DTD GlassFish Application Server 3.1 Resource Definitions//EN"
+        "http://glassfish.org/dtds/glassfish-resources_1_5.dtd">
+
+<resources>
+    <jdbc-connection-pool name="OraclePool"
+                          res-type="javax.sql.DataSource"
+                          datasource-classname="oracle.jdbc.pool.OracleDataSource"
+                          is-connection-validation-required="true"
+                          connection-validation-method="table"
+                          validation-table-name="DUAL"
+                          max-pool-size="32"
+                          steady-pool-size="4"
+                          idle-timeout-in-seconds="300">
+        <property name="user" value="SYSTEM"/>
+        <property name="password" value="Oracle123"/>
+        <property name="URL" value="jdbc:oracle:thin:@//localhost:1521/XEPDB1"/>
+        <property name="driverType" value="thin"/>
+    </jdbc-connection-pool>
+
+    <jdbc-resource pool-name="OraclePool" jndi-name="jdbc/oracleDS"/>
+</resources>

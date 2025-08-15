@@ -1,0 +1,618 @@
+/* ========== Base / Reset ========== */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+:root {
+    --bg: #fafafa;
+    --panel: #ffffff;
+    --text: #111827; /* slate-900 */
+    --muted: #6b7280; /* slate-500 */
+    --line: #e5e7eb; /* gray-200 */
+
+    --cell: 36px; /* hauteur d'une demi-heure */
+    --time-col: 4.75rem; /* largeur colonne des heures */
+    --radius: 10px;
+
+    /* Couleurs d'accent (H S L) — alpha via hsl(var(--x) / .12) */
+    --cs: 160 84% 39%; /* vert */
+    --math: 38 92% 50%; /* ambre */
+    --lab: 190 90% 40%; /* cyan */
+    --break: 220 10% 60%; /* gris bleuté */
+    --exam: 0 84% 58%; /* rouge */
+}
+
+/* Préférence système (sera supplantée par le toggle manuel si activé) */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #0b0c10;
+        --panel: #0f1115;
+        --text: #e5e7eb;
+        --muted: #94a3b8;
+        --line: #1f2937;
+    }
+}
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell,
+    "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.5;
+}
+
+/* Accessibilité */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ========== Block: schedule (commun) ========== */
+.schedule {
+    --shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
+
+    max-width: 1200px;
+    margin: 24px auto;
+    padding: 16px;
+}
+
+.schedule__header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 12px 16px;
+    margin-bottom: 12px;
+}
+
+.schedule__title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.schedule__controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.schedule__nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px 8px;
+}
+
+.schedule__nav-btn {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    width: 28px;
+    height: 28px;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 999px;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+}
+.schedule__nav-btn:hover {
+    background: color-mix(in hsl, var(--panel), var(--text) 6%);
+}
+.schedule__nav-btn:active {
+    background: color-mix(in hsl, var(--panel), var(--text) 12%);
+}
+.schedule__nav-btn:focus-visible {
+    outline: 2px solid color-mix(in hsl, var(--text), transparent 70%);
+    outline-offset: 2px;
+}
+
+.schedule__week {
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 0 2px;
+}
+
+.schedule__theme {
+    display: inline-flex;
+    align-items: center;
+}
+.schedule__theme-input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+.schedule__theme-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    color: var(--text);
+    cursor: pointer;
+    user-select: none;
+}
+.schedule__theme-button:focus-visible {
+    outline: 2px solid color-mix(in hsl, var(--text), transparent 70%);
+    outline-offset: 2px;
+}
+.schedule__theme-icon {
+    font-size: 14px;
+}
+.schedule__theme-text {
+    font-size: 0.9rem;
+}
+
+/* Icones qui changent selon l'état du toggle */
+.schedule__theme-icon--dark {
+    display: none;
+}
+.schedule:has(.schedule__theme-input:checked) .schedule__theme-icon--light {
+    display: none;
+}
+.schedule:has(.schedule__theme-input:checked) .schedule__theme-icon--dark {
+    display: inline;
+}
+
+/* Légende */
+.schedule__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 4px 0;
+}
+
+.schedule__legend-item {
+    font-size: 0.85rem;
+    color: var(--muted);
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+}
+
+.schedule__legend-item--cs {
+    border-color: hsl(var(--cs));
+    color: hsl(var(--cs));
+}
+.schedule__legend-item--math {
+    border-color: hsl(var(--math));
+    color: hsl(var(--math));
+}
+.schedule__legend-item--lab {
+    border-color: hsl(var(--lab));
+    color: hsl(var(--lab));
+}
+.schedule__legend-item--break {
+    border-color: hsl(var(--break));
+    color: hsl(var(--break));
+}
+.schedule__legend-item--exam {
+    border-color: hsl(var(--exam));
+    color: hsl(var(--exam));
+}
+
+/* ====== Version bureau/tablette (grille) ====== */
+.schedule__desktop {
+    display: block;
+}
+.schedule__mobile {
+    display: none;
+}
+
+.schedule__days {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: grid;
+    grid-template-columns: var(--time-col) repeat(5, 1fr);
+    align-items: stretch;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-bottom: none;
+    border-top-left-radius: var(--radius);
+    border-top-right-radius: var(--radius);
+    overflow: hidden;
+}
+
+.schedule__corner {
+    border-right: 1px solid var(--line);
+    background: var(--panel);
+    min-height: 44px;
+}
+
+.schedule__day-name {
+    display: grid;
+    place-items: center;
+    font-weight: 600;
+    min-height: 44px;
+    border-left: 1px solid var(--line);
+}
+
+.schedule__grid {
+    display: grid;
+    grid-template-columns: var(--time-col) repeat(5, 1fr);
+    grid-auto-rows: var(--cell);
+    position: relative;
+
+    border: 1px solid var(--line);
+    border-top: none;
+    border-bottom-left-radius: var(--radius);
+    border-bottom-right-radius: var(--radius);
+    background: repeating-linear-gradient(
+            to bottom,
+            transparent,
+            transparent calc(var(--cell) - 1px),
+            var(--line) calc(var(--cell) - 1px),
+            var(--line) var(--cell)
+    ),
+    var(--panel);
+    box-shadow: var(--shadow);
+    overflow: auto;
+}
+
+.schedule__time {
+    padding-inline: 8px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    border-right: 1px solid var(--line);
+}
+
+.schedule__event {
+    --accent: var(--cs); /* fallback */
+    margin: 2px 6px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid hsl(var(--accent) / 0.25);
+    border-left: 6px solid hsl(0deg 0% 85.97% / 41%);
+    background: hsl(var(--accent) / 0.12);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    outline: none;
+    overflow-wrap: break-word; /* coupe les mots trop longs */
+    word-break: break-word;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* centre verticalement */
+    cursor: pointer;
+}
+.schedule__event:focus-visible,
+.schedule__event:hover {
+    filter: brightness(1.06);
+}
+
+.schedule__event-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.schedule__event-meta {
+    font-size: 0.8rem;
+    color: #ffffff;
+    margin: 0;
+}
+
+.schedule__event--cs {
+    --accent: var(--cs);
+}
+.schedule__event--math {
+    --accent: var(--math);
+}
+.schedule__event--lab {
+    --accent: var(--lab);
+}
+.schedule__event--break {
+    --accent: var(--break);
+}
+.schedule__event--exam {
+    --accent: var(--exam);
+    position: relative;
+    border-color: hsl(var(--accent) / 0.38);
+    border-left: 10px solid hsl(var(--accent));
+    background:
+        /* couche motif diagonale très légère */ repeating-linear-gradient(
+            45deg,
+            hsl(var(--accent) / 0.14) 0 10px,
+            transparent 10px 20px
+    ),
+        /* voile dégradé */
+    linear-gradient(
+            180deg,
+            hsl(var(--accent) / 0.12),
+            hsl(var(--accent) / 0.18)
+    );
+    box-shadow: 0 0 0 1px hsl(var(--accent) / 0.2) inset,
+    0 8px 20px hsl(var(--accent) / 0.2);
+}
+
+.schedule__event--exam::after {
+    content: "EXAMEN";
+    position: absolute;
+    top: -10px;
+    right: 10px;
+    padding: 2px 8px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: #fff;
+    background: hsl(var(--accent));
+    border-radius: 999px;
+    box-shadow: 0 2px 6px hsl(var(--accent) / 0.35);
+}
+
+/* Icône avant le titre pour la reconnaissance rapide */
+.schedule__event--exam .schedule__event-title::before {
+    content: "🎓";
+    margin-right: 6px;
+}
+
+/* Métadonnées légèrement atténuées mais lisibles sur fond coloré */
+.schedule__event--exam .schedule__event-meta {
+    color: #ffffff;
+    opacity: 0.95;
+}
+
+/* Feedback au survol / focus */
+.schedule__event--exam:hover,
+.schedule__event--exam:focus-visible {
+    filter: brightness(1.08);
+    box-shadow: 0 0 0 1px hsl(var(--accent) / 0.28) inset,
+    0 10px 24px hsl(var(--accent) / 0.24);
+}
+
+/* Optionnel: pulsing doux pour examens imminents (ajouter .is-soon) */
+.schedule__event--exam.is-soon {
+    animation: examPulse 1.8s ease-in-out infinite;
+}
+@keyframes examPulse {
+    0%,
+    100% {
+        box-shadow: 0 0 0 1px hsl(var(--accent) / 0.2) inset,
+        0 8px 20px hsl(var(--accent) / 0.18);
+    }
+    50% {
+        box-shadow: 0 0 0 2px hsl(var(--accent) / 0.32) inset,
+        0 12px 28px hsl(var(--accent) / 0.26);
+    }
+}
+
+/* Mode sombre: garder le contraste élevé automatiquement via vos variables */
+.schedule:has(.schedule__theme-input:checked) .schedule__event--exam {
+    background: repeating-linear-gradient(
+            45deg,
+            hsl(var(--accent) / 0.18) 0 10px,
+            transparent 10px 20px
+    ),
+    linear-gradient(
+            180deg,
+            hsl(var(--accent) / 0.16),
+            hsl(var(--accent) / 0.22)
+    );
+}
+
+.schedule__hint {
+    margin: 12px 2px 0;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
+/* ====== Variante mobile (accordéon) ====== */
+.schedule-accordion {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.schedule-accordion__item {
+    border-top: 1px solid var(--line);
+}
+.schedule-accordion__item:first-of-type {
+    border-top: none;
+}
+
+.schedule-accordion__summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    gap: 8px;
+    padding: 12px 14px;
+    font-weight: 700;
+    cursor: pointer;
+    background: var(--panel);
+}
+.schedule-accordion__summary::-webkit-details-marker {
+    display: none;
+}
+
+.schedule-accordion__summary::after {
+    content: "▾";
+    color: var(--muted);
+    transition: transform 0.2s ease;
+}
+.schedule-accordion__item[open] .schedule-accordion__summary::after {
+    transform: rotate(180deg);
+}
+
+.schedule-accordion__day {
+    font-size: 1rem;
+}
+.schedule-accordion__meta {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-left: auto;
+}
+
+.schedule-accordion__panel {
+    padding: 8px 14px 14px;
+    border-top: 1px solid var(--line);
+}
+.schedule-accordion .schedule__event {
+    margin: 10px 0;
+}
+
+/* ====== Basculer thème sombre (manuel) via :has() ======
+   Quand la case est cochée, on force un thème sombre, au-dessus des prefs système. */
+.schedule:has(.schedule__theme-input:checked) {
+    --bg: #0b0c10;
+    --panel: #0f1115;
+    --text: #e5e7eb;
+    --muted: #94a3b8;
+    --line: #1f2937;
+}
+
+/* Responsif */
+@media (max-width: 900px) {
+    .schedule {
+        padding: 8px;
+    }
+    .schedule__title {
+        font-size: 1.1rem;
+    }
+    .schedule__legend-item {
+        font-size: 0.8rem;
+    }
+
+    /* Switch d'affichage */
+    .schedule__desktop {
+        display: none;
+    }
+    .schedule__mobile {
+        display: block;
+    }
+
+    /* Contrôles adaptatifs */
+    .schedule__header {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    .schedule__controls {
+        justify-content: space-between;
+    }
+}
+
+/* Impression (optionnel) */
+@media print {
+    :root {
+        --cell: 24px;
+        --line: #ddd;
+    }
+    body {
+        background: #fff;
+    }
+    .schedule__legend,
+    .schedule__hint,
+    .schedule__controls {
+        display: none;
+    }
+    .schedule__mobile {
+        display: none;
+    } /* imprimer la grille de bureau par défaut */
+    .schedule__days,
+    .schedule__grid {
+        box-shadow: none;
+    }
+}
+
+.course-popup {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 250px;
+    background: white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    padding: 15px;
+    z-index: 1000;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.course-popup.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(20px);
+}
+
+.course-popup h3 {
+    margin-top: 0;
+}
+
+.event-projet-personnel {
+    background-color: #2e7d32;
+    color: white;
+} /* Vert 700 */
+.event-systemes-exploitation {
+    background-color: #1976d2;
+    color: white;
+} /* Bleu 700 */
+.event-expression {
+    background-color: #f57c00;
+    color: white;
+} /* Orange 700 */
+.event-management {
+    background-color: #7b1fa2;
+    color: white;
+} /* Violet 700 */
+.event-objet-avancees {
+    background-color: #303f9f;
+    color: white;
+} /* Indigo 700 */
+.event-comptable {
+    background-color: #5d4037;
+    color: white;
+} /* Brun 700 */
+.event-projet {
+    background-color: #455a64;
+    color: white;
+} /* Bleu-gris 700 */
+.event-activite {
+    background-color: #00796b;
+    color: white;
+} /* Sarcelle/Teal 700 */
+.event-presence {
+    background-color: #c1baba;
+    color: white;
+} /* Rouge 700 */
+.event-modelisation {
+    background-color: #689f38;
+    color: white;
+} /* Vert clair 700 */
+.event-javascript {
+    background-color: #e64a19;
+    color: white;
+} /* Orange foncé 700 */
+.event-default {
+    background-color: #616161;
+    color: white;
+} /* Gris 700 */

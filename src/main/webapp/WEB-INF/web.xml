@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee
+                             https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd"
+         version="5.0">
+
+    <welcome-file-list>
+        <welcome-file>index.xhtml</welcome-file>
+    </welcome-file-list>
+
+
+    <!-- 🔹 Paramètres JSF pour optimiser les uploads -->
+    <context-param>
+        <param-name>jakarta.faces.STATE_SAVING_METHOD</param-name>
+        <param-value>server</param-value>
+    </context-param>
+
+    <!-- Timeout de session étendu pour les gros uploads -->
+    <session-config>
+        <session-timeout>60</session-timeout> <!-- 60 minutes -->
+    </session-config>
+    <context-param>
+        <param-name>jakarta.faces.PROJECT_STAGE</param-name>
+        <param-value>Development</param-value>
+    </context-param>
+
+    <servlet>
+        <servlet-name>FacesServlet</servlet-name>
+        <servlet-class>jakarta.faces.webapp.FacesServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+        <multipart-config>
+            <!-- Taille maximum par fichier : 10 Go -->
+            <max-file-size>10737418240</max-file-size>
+
+            <!-- Taille maximum pour toute la requête : 10 Go -->
+            <max-request-size>10737418240</max-request-size>
+
+            <!-- Seuil à partir duquel les fichiers sont écrits sur disque : 1 Mo -->
+            <file-size-threshold>1048576</file-size-threshold>
+
+            <!-- Répertoire temporaire pour les uploads (optionnel) -->
+<!--            <location>/tmp/uploads</location>-->
+        </multipart-config>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>FacesServlet</servlet-name>
+        <url-pattern>*.xhtml</url-pattern>
+    </servlet-mapping>
+
+
+    <!-- 🔹 Configuration PrimeFaces (si utilisé) -->
+    <context-param>
+        <param-name>primefaces.UPLOADER</param-name>
+        <param-value>native</param-value>
+    </context-param>
+
+    <!-- Augmente la taille des uploads pour PrimeFaces -->
+    <context-param>
+        <param-name>primefaces.FILE_UPLOAD_SIZE_LIMIT</param-name>
+        <param-value>10737418240</param-value> <!-- 10 Go -->
+    </context-param>
+
+    <!-- 🔹 Pages d'erreur personnalisées -->
+<!--    <error-page>-->
+<!--        <error-code>413</error-code> &lt;!&ndash; Request Entity Too Large &ndash;&gt;-->
+<!--        <location>file-too-large.xhtml</location>-->
+<!--    </error-page>-->
+
+<!--    <error-page>-->
+<!--        <error-code>500</error-code>-->
+<!--        <location>server-error.xhtml</location>-->
+<!--    </error-page>-->
+
+    <!-- 🔹 Paramètres de sécurité -->
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Restricted Files</web-resource-name>
+            <url-pattern>*.exe</url-pattern>
+            <url-pattern>*.bat</url-pattern>
+            <url-pattern>*.com</url-pattern>
+            <url-pattern>*.scr</url-pattern>
+        </web-resource-collection>
+        <auth-constraint/>
+    </security-constraint>
+
+</web-app>

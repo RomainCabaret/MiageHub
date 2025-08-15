@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:ui="jakarta.faces.facelets">
+<h:head>
+    <title>Emploi du temps</title>
+    <h:outputStylesheet library="css" name="cours.css"/>
+    <script>
+        function showCourseDetails(title, time, room, content) {
+            const popup = document.getElementById("course-popup");
+            document.getElementById("popup-title").textContent = title;
+            document.getElementById("popup-time").textContent = time;
+            document.getElementById("popup-room").textContent = room;
+            document.getElementById("popup-content").textContent =
+                content || "Aucune description";
+
+            popup.classList.remove("hidden");
+        }
+
+        // Cacher au clic à l'extérieur
+        document.addEventListener("click", function (e) {
+            console.log(e.target);
+
+            if (e.target.className.includes("COURSE__POPUP__ENABLED")) {
+                console.log(e.target.className.includes("COURSE__POPUP__ENABLED"));
+                return;
+            }
+
+            document.getElementById("course-popup").classList.add("hidden");
+        });
+    </script>
+</h:head>
+<h:body>
+    <main class="schedule" aria-labelledby="schedule-title">
+        <header class="schedule__header">
+            <h1 id="schedule-title" class="schedule__title">
+                Emploi du temps — Semaine
+            </h1>
+
+            <!-- Contrôles: navigation de semaine + thème -->
+            <div class="schedule__controls">
+                <div class="schedule__nav" role="group" aria-label="Navigation des semaines">
+                    <h:form>
+                        <h:commandButton value="‹" action="#{coursBean.semainePrecedente}"
+                                         styleClass="schedule__nav-btn schedule__nav-btn--prev"
+                                         title="Semaine précédente" />
+                        <span class="schedule__week" aria-live="polite">
+            #{coursBean.periodeSemaine}
+        </span>
+                        <h:commandButton value="›" action="#{coursBean.semaineSuivante}"
+                                         styleClass="schedule__nav-btn schedule__nav-btn--next"
+                                         title="Semaine suivante" />
+                    </h:form>
+                </div>
+
+                <div class="schedule__theme">
+                    <input
+                            id="theme-toggle"
+                            class="schedule__theme-input"
+                            type="checkbox"
+                            aria-label="Basculer le thème sombre"
+                    />
+                    <label class="schedule__theme-button" for="theme-toggle">
+              <span
+                      class="schedule__theme-icon schedule__theme-icon--light"
+                      aria-hidden="true"
+              >☀︎</span
+              >
+                        <span
+                                class="schedule__theme-icon schedule__theme-icon--dark"
+                                aria-hidden="true"
+                        >☾</span
+                        >
+                        <span class="schedule__theme-text">Thème</span>
+                    </label>
+                </div>
+            </div>
+
+<!--            <ul class="schedule__legend" aria-label="Légende des matières">-->
+<!--                <li class="schedule__legend-item schedule__legend-item&#45;&#45;cs">-->
+<!--                    Informatique-->
+<!--                </li>-->
+<!--                <li class="schedule__legend-item schedule__legend-item&#45;&#45;math">-->
+<!--                    Mathématiques-->
+<!--                </li>-->
+<!--                <li class="schedule__legend-item schedule__legend-item&#45;&#45;lab">-->
+<!--                    TP / Projet-->
+<!--                </li>-->
+<!--                <li class="schedule__legend-item schedule__legend-item&#45;&#45;exam">-->
+<!--                    Examen-->
+<!--                </li>-->
+<!--                <li class="schedule__legend-item schedule__legend-item&#45;&#45;break">-->
+<!--                    Pause-->
+<!--                </li>-->
+<!--            </ul>-->
+        </header>
+
+        <!-- ===== Version bureau/tablette (grille) ===== -->
+        <div class="schedule__desktop" aria-hidden="false">
+            <div class="schedule__days" role="rowgroup">
+                <div class="schedule__corner" aria-hidden="true"></div>
+                <div
+                        class="schedule__day-name"
+                        role="columnheader"
+                        aria-label="Lundi"
+                >
+                    Lundi
+                </div>
+                <div
+                        class="schedule__day-name"
+                        role="columnheader"
+                        aria-label="Mardi"
+                >
+                    Mardi
+                </div>
+                <div
+                        class="schedule__day-name"
+                        role="columnheader"
+                        aria-label="Mercredi"
+                >
+                    Mercredi
+                </div>
+                <div
+                        class="schedule__day-name"
+                        role="columnheader"
+                        aria-label="Jeudi"
+                >
+                    Jeudi
+                </div>
+                <div
+                        class="schedule__day-name"
+                        role="columnheader"
+                        aria-label="Vendredi"
+                >
+                    Vendredi
+                </div>
+            </div>
+
+            <section
+                    class="schedule__grid"
+                    aria-label="Emploi du temps hebdomadaire de 08:00 à 18:00, pas de 30 minutes"
+            >
+                <!-- Libellés d'heures -->
+                <div class="schedule__time" style="grid-column: 1; grid-row: 1">
+                    08:00
+                </div>
+                <div class="schedule__time" style="grid-column: 1; grid-row: 3">
+                    09:00
+                </div>
+                <div class="schedule__time" style="grid-column: 1; grid-row: 5">
+                    10:00
+                </div>
+                <div class="schedule__time" style="grid-column: 1; grid-row: 7">
+                    11:00
+                </div>
+                <div class="schedule__time" style="grid-column: 1; grid-row: 9">
+                    12:00
+                </div>
+                <div class="schedule__time" style="grid-column: 1; grid-row: 11">
+                    13:00
+                </div>
+                <div class="schedule__time" style="grid-column: 1; grid-row: 13">
+                    14:00
+                </div>
+                <div class="schedule__time" style="grid-column: 1; grid-row: 15">
+                    15:00
+                </div>
+                <div class="schedule__time" style="grid-column: 1; grid-row: 17">
+                    16:00
+                </div>
+                <div class="schedule__time" style="grid-column: 1; grid-row: 19">
+                    17:00
+                </div>
+                <div class="schedule__time" style="grid-column: 1; grid-row: 21">
+                    18:00
+                </div>
+
+                <!-- Cours dynamiques -->
+                <ui:repeat value="#{coursBean.coursParJour.values().stream().flatMap(l -> l.stream()).toList()}" var="c">
+                    <article class="schedule__event COURSE__POPUP__ENABLED  #{coursBean.getCssClassForCours(c.matiere, c.typeCours)} "
+                             style="grid-column: #{coursBean.gridColumn(c.date)};
+       grid-row: #{coursBean.gridRow(c.timestampDebut)} / span #{coursBean.rowSpan(c.timestampDebut, c.timestampFin)}"
+                             onclick="showCourseDetails(`#{c.matiere}`, `#{c.timestampDebut.toLocalDateTime().toLocalTime()}–#{c.timestampFin.toLocalDateTime().toLocalTime()}`, `#{c.salle}`, `#{c.content}`)">
+                        <h3 class="schedule__event-title COURSE__POPUP__ENABLED">#{c.matiere}</h3>
+                        <p class="schedule__event-meta COURSE__POPUP__ENABLED">
+                            #{c.timestampDebut.toLocalDateTime().toLocalTime()}–#{c.timestampFin.toLocalDateTime().toLocalTime()} · Salle #{c.salle}
+                        </p>
+                        <ui:fragment rendered="#{not empty c.typeCours and c.typeCours ne 'PRESENCE UNIVERSITAIRE'}">
+                            <p class="schedule__event-meta COURSE__POPUP__ENABLED">#{c.typeCours}</p>
+                        </ui:fragment>
+
+<!--                        <ui:fragment rendered="#{not empty c.groupe and c.groupe ne 'PRESENCE UNIVERSITAIRE'}">-->
+<!--                            <p class="schedule__event-meta">#{c.groupe}</p>-->
+<!--                        </ui:fragment>-->
+                        <!--                        <p class="schedule__event-meta">#{c.content}</p>-->
+
+                    </article>
+                </ui:repeat>
+            </section>
+
+<!--            <p class="schedule__hint">-->
+<!--                Astuce: adaptez les positions en modifiant grid-column (jour: 2 =-->
+<!--                Lundi ... 6 = Vendredi) et grid-row (08:00 = 1, +1 par 30 min).-->
+<!--                grid-row: X / span Y, où Y = durée en pas de 30 min.-->
+<!--            </p>-->
+        </div>
+
+        <!-- ===== Variante mobile (accordéon) ===== -->
+        <section class="schedule-accordion schedule__mobile"
+                 aria-label="Emploi du temps — Vue mobile par jour">
+
+            <ui:repeat value="#{coursBean.coursParJour.entrySet()}" var="entry" varStatus="status">
+
+                <!-- PREMIER JOUR (Lundi) avec open -->
+                <h:panelGroup rendered="#{status.first}">
+                    <details class="schedule-accordion__item" open="open">
+                        <summary class="schedule-accordion__summary">
+                    <span class="schedule-accordion__day">
+                        #{coursBean.getJourFrancais(entry.key)}
+                    </span>
+                            <span class="schedule-accordion__meta">
+                        #{entry.value.size()} événements
+                    </span>
+                        </summary>
+                        <div class="schedule-accordion__panel">
+                            <ui:repeat value="#{entry.value}" var="c">
+                                <article class="schedule__event #{coursBean.getCssClassForCours(c.matiere, c.typeCours)}">
+                                    <h3 class="schedule__event-title">#{c.matiere}</h3>
+                                    <p class="schedule__event-meta">
+                                        #{c.timestampDebut.toLocalDateTime().toLocalTime()}
+                                        – #{c.timestampFin.toLocalDateTime().toLocalTime()}
+                                        · Salle #{c.salle}
+                                    </p>
+                                    <p class="schedule__event-meta">#{c.content}</p>
+                                </article>
+                            </ui:repeat>
+                        </div>
+                    </details>
+                </h:panelGroup>
+
+                <!-- AUTRES JOURS -->
+                <h:panelGroup rendered="#{not status.first}">
+                    <details class="schedule-accordion__item" open="open">
+                        <summary class="schedule-accordion__summary">
+                    <span class="schedule-accordion__day">
+                        #{coursBean.getJourFrancais(entry.key)}
+                    </span>
+                            <span class="schedule-accordion__meta">
+                        #{entry.value.size()} événements
+                    </span>
+                        </summary>
+                        <div class="schedule-accordion__panel">
+                            <ui:repeat value="#{entry.value}" var="c">
+                                <article class="schedule__event #{coursBean.getCssClassForCours(c.matiere, c.typeCours)}">
+                                    <h3 class="schedule__event-title">#{c.matiere}</h3>
+                                    <p class="schedule__event-meta">
+                                        #{c.timestampDebut.toLocalDateTime().toLocalTime()}
+                                        – #{c.timestampFin.toLocalDateTime().toLocalTime()}
+                                        · Salle #{c.salle}
+                                    </p>
+                                    <p class="schedule__event-meta">#{c.content}</p>
+                                </article>
+                            </ui:repeat>
+                        </div>
+                    </details>
+                </h:panelGroup>
+
+            </ui:repeat>
+
+        </section>
+
+        <!-- Pop-up latéral -->
+        <div id="course-popup" class="course-popup hidden" onclick="event.stopPropagation()">
+            <h3 id="popup-title"></h3>
+            <p id="popup-time"></p>
+            <p id="popup-room"></p>
+            <p id="popup-content"></p>
+        </div>
+
+        <h:form>
+            <h:commandButton value="Driver" action="#{coursBean.redirectionIntoDriver}" />
+        </h:form>
+
+
+
+    </main>
+</h:body>
+</html>
