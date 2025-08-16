@@ -346,6 +346,10 @@ img {
     transform var(--transition);
 }
 
+.btn{
+
+}
+
 .btn:hover {
     border-color: color-mix(in oklab, var(--border), white 8%);
 }

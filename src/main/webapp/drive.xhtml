@@ -27,29 +27,62 @@
                         📁 Nouveau dossier
                     </div>
 
-                    <p:fileUpload listener="#{driveDAO.handleUploadFile}"
-                                  mode="advanced"
-                                  dragDropSupport="true"
-                                  multiple="true"
-                                  auto="true"
-                                  maxFileSize="10737418240"
-                                  allowTypes="/(\.|\/)(gif|jpe?g|png|pdf|doc|docx|xls|xlsx|ppt|pptx|txt|zip|rar|mp4|avi|mov)$/"
-                                  invalidSizeMessage="Fichier trop volumineux (max 10Go)"
-                                  invalidFileMessage="Type de fichier non autorisé"
-                                  uploadLabel="⬆️ Téléverser"
-                                  cancelLabel="Annuler"
-                                  clearAllLabel="Tout effacer"
-                                  update="driveContainerForm messages"
-                                  onstart="openUploadModal();"
-                                  oncomplete="closeUploadModal(); console.log('✅ Upload terminé')"
-                                  onerror="closeUploadModal(); console.log('❌ Erreur upload')"/>
+                    <h:form id="uploadForm" enctype="multipart/form-data">
 
-                    <!-- 🔹 Alternative: Polling pour mise à jour automatique -->
-                    <p:poll interval="2"
-                            update="driveContainerForm"
-                            active="false"
-                            widgetVar="refreshPoll"
-                            oncomplete="PF('refreshPoll').stop();" />
+                        <p:fileUpload id="fileUploader"
+                                      value="#{driveDAO.uploadedFile}"
+                                      mode="simple" skinSimple="true"
+                                      auto="true"
+                                      process="@this"
+                                      update="messages"
+                                      listener="#{driveDAO.handleFileUpload}"
+                                      widgetVar="uploader"
+                                      onupload="return pfValidateBeforeUpload(this);"  >
+                            <!-- Validation intégrée PrimeFaces (côté client + serveur) -->
+                            <p:validateFile
+                                    allowTypes="/(\.|\/)(jpg|jpeg|png|gif|pdf|txt|zip|rar|docx|xlsx)$/i"
+                                    sizeLimit="10485760"
+                                    allowTypesMessage="Type non autorisé ! Utilisez : JPG, PNG, GIF, PDF, TXT, ZIP, RAR, DOCX, XLSX"
+                                    sizeLimitMessage="Fichier trop volumineux ! Maximum : 10 Mo" />
+                        </p:fileUpload>
+                    </h:form>
+
+                    <script type="text/javascript">
+                        // Validation JS optionnelle AVANT l’upload (annule si return false)
+                        function pfValidateBeforeUpload(widget) {
+                            var files = widget.files || [];
+                            var allowed = /\.(jpg|jpeg|png|gif|pdf|txt|zip|rar|docx|xlsx)$/i;
+                            var max = 10 * 1024 * 1024; // 10 Mo
+
+                            for (var i = 0; i &lt; files.length; i++) {
+                                var f = files[i];
+                                if (!allowed.test(f.name)) {
+                                    console.log("error")
+                                    PF('messages').renderMessage({
+                                        severity: 'error',
+                                        summary: 'Type non autorisé',
+                                        detail: 'Fichier refusé : ' + f.name
+                                    });
+                                    return false; // empêche l’upload
+                                }
+                                if (f.size > max) {
+                                    console.log("error size")
+
+                                    PF('messages').renderMessage({
+                                        severity: 'error',
+                                        summary: 'Fichier trop volumineux',
+                                        detail: f.name + ' > 10 Mo'
+                                    });
+                                    return false; // empêche l’upload
+                                }
+                            }
+                            return true; // OK, laisse partir l’upload
+                        }
+                    </script>
+
+
+
+                    <!-- Messages d'erreur/succès -->
 
 
 
@@ -181,6 +214,9 @@
         </main>
     </div>
 
+
+
+
     <!--        Rename / Create Modal-->
 
     <!-- ========================== MODALS ========================== -->
@@ -308,7 +344,6 @@
         </div>
     </h:form>
 
-    Toasts
     <div class="toast" id="toast"></div>
 
     <!--    TAOST PRIMEFACE-->
@@ -317,7 +352,6 @@
 
 
     <h:outputScript name="js/drive.js"/>
-    <h:outputScript name="js/driveProgress.js"/>
 
 
     <style>
@@ -325,6 +359,14 @@
 
         .ui-fileupload-content, .ui-widget-content{
             display: none!important;
+        }
+
+        .ui-fileupload-choose {
+            height: 100%!important;
+            width: 100% !important;
+            text-align: center;
+            padding: 1rem;
+            border-radius: 12px;
         }
 
         .modal__dialog--upload {

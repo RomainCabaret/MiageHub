@@ -1,415 +1,417 @@
 package com.GlassFishJSF.dao;
 
-import jakarta.enterprise.context.RequestScoped;
-import jakarta.enterprise.context.SessionScoped;
 import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Named;
-
-import java.io.File;
-import java.util.List;
-
-
-import jakarta.enterprise.context.SessionScoped;
-import jakarta.inject.Named;
-import jakarta.servlet.http.Part;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.file.UploadedFile;
-import org.primefaces.model.file.UploadedFiles;
 
 import java.io.*;
 import java.nio.file.*;
-import java.io.Serializable;
 import java.util.*;
-import java.util.regex.Pattern;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 @Named
 @ViewScoped
 public class DriveDAO implements Serializable {
 
-    private static final String BASE_PATH = "C:\\Users\\Romain\\Desktop\\GlassFishDrive"; // 📂
-    private static final long MAX_FILE_SIZE = 10L * 1024 * 1024 * 1024; // 10 Go en bytes
+    private static final Logger LOGGER = Logger.getLogger(DriveDAO.class.getName());
 
+    // Configuration
+    private static final String BASE_PATH = "C:\\Users\\Romain\\Desktop\\GlassFishDrive";
+    private static final long MAX_FILE_SIZE = 10L * 1024 * 1024; // 10 Mo
 
+    // Variables d'état
     private String currentPath = BASE_PATH;
     private String newFolderName;
     private String renameOldName;
     private String renameNewName;
 
-    // UPLOAD FILE
-    private boolean uploading = false;
-    private long uploadProgress = 0;
-    private String uploadStatusMessage = "";
+    // IMPORTANT : Variable pour le mode simple selon la doc PrimeFaces
+    private UploadedFile uploadedFile;
 
-    // Getters et setters
-    public boolean isUploading() { return uploading; }
-    public void setUploading(boolean uploading) { this.uploading = uploading; }
-    public long getUploadProgress() { return uploadProgress; }
-    public void setUploadProgress(long uploadProgress) { this.uploadProgress = uploadProgress; }
-    public String getUploadStatusMessage() { return uploadStatusMessage; }
-    public void setUploadStatusMessage(String uploadStatusMessage) { this.uploadStatusMessage = uploadStatusMessage; }
+    // ==================== GETTERS/SETTERS ====================
 
-    private UploadedFiles uploadFile; // ou renomme en uploadFiles
-
-    public UploadedFiles getUploadFile() {
-        return uploadFile;
+    public UploadedFile getUploadedFile() {
+        return uploadedFile;
     }
 
-    public void setUploadFile(UploadedFiles uploadFile) {
-        this.uploadFile = uploadFile;
+    public void setUploadedFile(UploadedFile uploadedFile) {
+        this.uploadedFile = uploadedFile;
     }
 
+    public String getNewFolderName() { return newFolderName; }
+    public void setNewFolderName(String newFolderName) { this.newFolderName = newFolderName; }
 
+    public String getRenameOldName() { return renameOldName; }
+    public void setRenameOldName(String renameOldName) { this.renameOldName = renameOldName; }
 
+    public String getRenameNewName() { return renameNewName; }
+    public void setRenameNewName(String renameNewName) { this.renameNewName = renameNewName; }
 
+    // ==================== UPLOAD SELON DOC PRIMEFACES ====================
 
-    // ------------ VERIFICATION ------------
+    /**
+     * Listener pour le mode simple avec auto="true"
+     * Signature exacte selon la documentation PrimeFaces
+     */
+    public void handleFileUpload(FileUploadEvent event) {
+        System.out.println("=== DÉBUT handleFileUpload (Event) ===");
 
-    private void showErrorToast(String message) {
-        FacesContext.getCurrentInstance().addMessage(
-                null,
-                new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erreur", message)
-        );
+        try {
+            UploadedFile file = event.getFile();
+            System.out.println("Fichier reçu via event: " + (file != null ? file.getFileName() : "NULL"));
+
+            if (file != null) {
+                processFile(file);
+            } else {
+                addErrorMessage("Aucun fichier reçu dans l'événement");
+            }
+
+        } catch (Exception e) {
+            System.err.println("ERREUR handleFileUpload (Event): " + e.getMessage());
+            e.printStackTrace();
+            addErrorMessage("Erreur upload via event: " + e.getMessage());
+        }
+
+        System.out.println("=== FIN handleFileUpload (Event) ===");
     }
 
-    // Vérifie que le dossier courant existe, sinon retourne à la racine (pour navigation)
-    private void ensureCurrentPathValid() {
-        Path path = Paths.get(currentPath);
+    /**
+     * Alternative : méthode appelée si pas d'auto (avec commandButton)
+     * Utilise la variable uploadedFile bindée dans le JSF
+     */
+    public void processUpload() {
+        System.out.println("=== DÉBUT processUpload (Manuel) ===");
+
+        try {
+            System.out.println("Fichier reçu via binding: " + (uploadedFile != null ? uploadedFile.getFileName() : "NULL"));
+
+            if (uploadedFile != null && uploadedFile.getSize() > 0) {
+                processFile(uploadedFile);
+                // Reset après traitement
+                uploadedFile = null;
+            } else {
+                addErrorMessage("Aucun fichier sélectionné ou fichier vide");
+            }
+
+        } catch (Exception e) {
+            System.err.println("ERREUR processUpload (Manuel): " + e.getMessage());
+            e.printStackTrace();
+            addErrorMessage("Erreur upload manuel: " + e.getMessage());
+        }
+
+        System.out.println("=== FIN processUpload (Manuel) ===");
+    }
+
+    /**
+     * Logique commune de traitement du fichier
+     */
+    private void processFile(UploadedFile file) {
+        System.out.println("=== DÉBUT processFile ===");
+        System.out.println("Nom: " + file.getFileName());
+        System.out.println("Taille: " + file.getSize() + " bytes (" + (file.getSize() / 1024.0) + " Ko)");
+        System.out.println("Type MIME: " + file.getContentType());
+
+        try {
+            // Validations de base
+            validateCurrentPath();
+            validateFile(file);
+
+            // Résolution du nom final
+            String finalFileName = resolveNameConflict(file.getFileName());
+            Path targetPath = Paths.get(currentPath, finalFileName);
+
+            System.out.println("Chemin cible: " + targetPath);
+
+            // Créer les répertoires parents si nécessaire
+            Files.createDirectories(targetPath.getParent());
+
+            // Copie du fichier
+            try (InputStream input = file.getInputStream()) {
+                long bytesCopied = Files.copy(input, targetPath, StandardCopyOption.REPLACE_EXISTING);
+                System.out.println("Bytes copiés: " + bytesCopied);
+            }
+
+            // Vérifications post-upload
+            if (!Files.exists(targetPath)) {
+                throw new IOException("Le fichier n'a pas été créé sur le disque");
+            }
+
+            long finalSize = Files.size(targetPath);
+            System.out.println("Taille finale sur disque: " + finalSize);
+
+            // Succès
+            addSuccessMessage(String.format("Fichier '%s' uploadé avec succès (%.2f Ko)",
+                    finalFileName, finalSize / 1024.0));
+
+            System.out.println("=== UPLOAD RÉUSSI ===");
+
+        } catch (Exception e) {
+            System.err.println("ERREUR processFile: " + e.getMessage());
+            e.printStackTrace();
+            addErrorMessage("Erreur traitement fichier: " + e.getMessage());
+        }
+    }
+
+    // ==================== VALIDATIONS ====================
+
+    private void validateCurrentPath() throws IOException {
+        Path path = Paths.get(currentPath).normalize();
+        Path basePath = Paths.get(BASE_PATH).normalize();
+
+        if (!path.startsWith(basePath)) {
+            currentPath = BASE_PATH;
+            throw new SecurityException("Chemin non autorisé");
+        }
+
         if (!Files.exists(path) || !Files.isDirectory(path)) {
             currentPath = BASE_PATH;
+            throw new IOException("Le répertoire n'existe plus");
         }
     }
 
-    // Vérifie que le dossier courant existe, sinon lance une exception (pour actions critiques)
-    private void validateCurrentPathOrThrowAndReset() throws IOException {
-        Path path = Paths.get(currentPath);
-
-        // Sécurité : on vérifie que le chemin est bien sous BASE_PATH
-        if (!path.normalize().startsWith(Paths.get(BASE_PATH))) {
-            currentPath = BASE_PATH;
-            showErrorToast("Chemin non autorisé.");
-            throw new IOException("Chemin non autorisé : " + currentPath);
+    private void validateFile(UploadedFile file) throws IOException {
+        if (file == null || file.getFileName() == null || file.getFileName().trim().isEmpty()) {
+            throw new IOException("Aucun fichier ou nom vide");
         }
 
-        // Vérifie chaque sous-dossier depuis la racine
-        Path testPath = Paths.get(BASE_PATH);
-        for (Path part : Paths.get(BASE_PATH).relativize(path)) {
-            testPath = testPath.resolve(part);
-            if (!Files.exists(testPath) || !Files.isDirectory(testPath)) {
-                currentPath = BASE_PATH; // 🔹 Reset à la racine
-                showErrorToast("Le dossier a été renommé ou supprimé. Vous êtes revenu à la racine.");
-                throw new IOException("[VERIFICATION] Le dossier n'existe plus ou a été renommé : " + testPath);
-            }
+        if (file.getSize() > MAX_FILE_SIZE) {
+            throw new IOException(String.format("Fichier trop volumineux (%.1f Mo). Max: %.1f Mo",
+                    file.getSize() / (1024.0 * 1024.0), MAX_FILE_SIZE / (1024.0 * 1024.0)));
+        }
+
+        if (file.getSize() <= 0) {
+            throw new IOException("Le fichier est vide");
+        }
+
+        // Validation extension simple
+        String fileName = file.getFileName().toLowerCase();
+        String[] allowedExtensions = {".jpg", ".jpeg", ".png", ".gif", ".pdf", ".txt", ".zip", ".rar", ".docx", ".xlsx"};
+
+        boolean validExtension = Arrays.stream(allowedExtensions)
+                .anyMatch(ext -> fileName.endsWith(ext));
+
+        if (!validExtension) {
+            throw new IOException("Type de fichier non autorisé. Extensions acceptées : " +
+                    String.join(", ", allowedExtensions));
         }
     }
 
-    // Gère les conflits de noms : si un fichier/dossier existe déjà, on ajoute (1), (2), ...
-    private String resolveConflictName(String name) {
-        Path path = Paths.get(currentPath, name);
-        if (!Files.exists(path)) {
-            return name; // aucun conflit, on garde le nom
+    private String resolveNameConflict(String fileName) {
+        Path targetPath = Paths.get(currentPath, fileName);
+        if (!Files.exists(targetPath)) {
+            return fileName;
         }
 
-        String baseName = name;
+        String baseName = fileName;
         String extension = "";
-
-        // Sépare nom et extension si c'est un fichier avec extension
-        int dotIndex = name.lastIndexOf('.');
+        int dotIndex = fileName.lastIndexOf('.');
         if (dotIndex > 0) {
-            baseName = name.substring(0, dotIndex);
-            extension = name.substring(dotIndex);
+            baseName = fileName.substring(0, dotIndex);
+            extension = fileName.substring(dotIndex);
         }
 
         int counter = 1;
         String newName;
         do {
-            newName = baseName + "(" + counter + ")" + extension;
+            newName = baseName + "_(" + counter + ")" + extension;
+            targetPath = Paths.get(currentPath, newName);
             counter++;
-        } while (Files.exists(Paths.get(currentPath, newName)));
+        } while (Files.exists(targetPath) && counter < 100);
 
         return newName;
     }
 
-    // ------------ CRUD ------------
-
-    // --- GET
+    // ==================== CRUD OPERATIONS ====================
 
     public List<String> getFiles() {
-        File dir = new File(currentPath);
-        if (!dir.exists() || !dir.isDirectory()) return Collections.emptyList();
-
-        String[] files = dir.list((current, name) -> new File(current, name).isFile());
-        return files != null ? Arrays.asList(files) : Collections.emptyList();
+        try {
+            validateCurrentPath();
+            File dir = new File(currentPath);
+            String[] files = dir.list((current, name) -> new File(current, name).isFile());
+            List<String> result = files != null ? Arrays.asList(files) : Collections.emptyList();
+            Collections.sort(result);
+            return result;
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Erreur lecture fichiers", e);
+            return Collections.emptyList();
+        }
     }
 
     public List<String> getFolders() {
-        File dir = new File(currentPath);
-        if (!dir.exists() || !dir.isDirectory()) return Collections.emptyList();
-
-        String[] folders = dir.list((current, name) -> new File(current, name).isDirectory());
-        return folders != null ? Arrays.asList(folders) : Collections.emptyList();
+        try {
+            validateCurrentPath();
+            File dir = new File(currentPath);
+            String[] folders = dir.list((current, name) -> new File(current, name).isDirectory());
+            List<String> result = folders != null ? Arrays.asList(folders) : Collections.emptyList();
+            Collections.sort(result);
+            return result;
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Erreur lecture dossiers", e);
+            return Collections.emptyList();
+        }
     }
 
-    // --- ADD
-
-
-    public void handleUploadFile(FileUploadEvent event) {
-        UploadedFile file = event.getFile();
-
-        if (file == null) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erreur", "Aucun fichier reçu"));
-            return;
-        }
-
+    public void handleCreateFolder() {
         try {
-            // Validation de taille
-            if (file.getSize() > MAX_FILE_SIZE) {
-                String maxSizeFormatted = formatFileSize(MAX_FILE_SIZE);
-                String fileSizeFormatted = formatFileSize(file.getSize());
-                FacesContext.getCurrentInstance().addMessage(null,
-                        new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erreur",
-                                "Fichier trop volumineux (" + fileSizeFormatted + "). Max: " + maxSizeFormatted));
+            validateCurrentPath();
+
+            if (newFolderName == null || newFolderName.trim().isEmpty()) {
+                addErrorMessage("Nom de dossier requis");
                 return;
             }
 
-            validateCurrentPathOrThrowAndReset(); // Vérification du chemin
+            String finalFolderName = resolveNameConflict(newFolderName);
+            Path folderPath = Paths.get(currentPath, finalFolderName);
 
-            String fileName = file.getFileName();
-            System.out.println("--[UPLOAD] " + currentPath + "\\" + fileName);
+            Files.createDirectories(folderPath);
+            addSuccessMessage("Dossier '" + finalFolderName + "' créé");
 
-            try (InputStream in = file.getInputStream()) {
-                Path target = Paths.get(currentPath, resolveConflictName(fileName));
-                Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
+            newFolderName = "";
+
+        } catch (Exception e) {
+            addErrorMessage("Erreur création dossier: " + e.getMessage());
+            LOGGER.log(Level.WARNING, "Erreur création dossier", e);
+        }
+    }
+
+    public void delete(String itemName) {
+        try {
+            validateCurrentPath();
+            Path targetPath = Paths.get(currentPath, itemName);
+
+            if (!Files.exists(targetPath)) {
+                addErrorMessage("L'élément n'existe pas");
+                return;
             }
 
-            // 🔹 Message de succès
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Upload réussi",
-                            "Fichier uploadé : " + fileName));
+            Files.delete(targetPath);
+            addSuccessMessage("Élément supprimé: " + itemName);
 
-            System.out.println("✅ Upload réussi : " + fileName);
-
-        } catch (IOException e) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erreur upload", e.getMessage()));
-            System.err.println("❌ Erreur upload : " + e.getMessage());
+        } catch (Exception e) {
+            addErrorMessage("Erreur suppression: " + e.getMessage());
+            LOGGER.log(Level.WARNING, "Erreur suppression", e);
         }
     }
 
-    private void uploadWithProgress(InputStream inputStream, Path target, long totalSize) throws IOException {
-        final int BUFFER_SIZE = 8192; // 8KB buffer
-        byte[] buffer = new byte[BUFFER_SIZE];
-        long totalBytesRead = 0;
+    public void rename() {
+        try {
+            validateCurrentPath();
 
-        uploadStatusMessage = "Upload en cours...";
-
-        try (InputStream in = inputStream;
-             OutputStream out = Files.newOutputStream(target, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-
-            int bytesRead;
-            while ((bytesRead = in.read(buffer)) != -1) {
-                out.write(buffer, 0, bytesRead);
-                totalBytesRead += bytesRead;
-
-                // 🔹 Mise à jour de la progression
-                if (totalSize > 0) {
-                    uploadProgress = (totalBytesRead * 100) / totalSize;
-                    uploadStatusMessage = String.format("Upload en cours... %s / %s (%.1f%%)",
-                            formatFileSize(totalBytesRead),
-                            formatFileSize(totalSize),
-                            (double)uploadProgress);
-                }
-
-                // 🔹 Permet à JSF de mettre à jour l'interface (optionnel)
-                try {
-                    Thread.sleep(10); // Petite pause pour éviter la surcharge
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    throw new IOException("Upload interrompu", e);
-                }
+            if (renameOldName == null || renameNewName == null ||
+                    renameOldName.trim().isEmpty() || renameNewName.trim().isEmpty()) {
+                addErrorMessage("Noms requis pour le renommage");
+                return;
             }
+
+            Path sourcePath = Paths.get(currentPath, renameOldName);
+            if (!Files.exists(sourcePath)) {
+                addErrorMessage("L'élément à renommer n'existe pas");
+                return;
+            }
+
+            String finalNewName = resolveNameConflict(renameNewName);
+            Path targetPath = Paths.get(currentPath, finalNewName);
+
+            Files.move(sourcePath, targetPath);
+            addSuccessMessage("Renommé: " + renameOldName + " → " + finalNewName);
+
+            renameOldName = "";
+            renameNewName = "";
+
+        } catch (Exception e) {
+            addErrorMessage("Erreur renommage: " + e.getMessage());
+            LOGGER.log(Level.WARNING, "Erreur renommage", e);
         }
     }
 
-    /**
-     * Formate la taille de fichier de manière lisible
-     */
-    private String formatFileSize(long bytes) {
-        if (bytes < 1024) return bytes + " B";
-        int exp = (int) (Math.log(bytes) / Math.log(1024));
-        String pre = "KMGTPE".charAt(exp - 1) + "o";
-        return String.format("%.1f %s", bytes / Math.pow(1024, exp), pre);
-    }
+    // ==================== NAVIGATION ====================
 
-    /**
-     * Validation client-side de la taille (appelée via JavaScript)
-     */
-    public void validateFileSize() {
-        // Cette méthode peut être appelée via AJAX pour une validation préalable
-        if (uploadFile != null && uploadFile.getSize() > MAX_FILE_SIZE) {
-            String maxSizeFormatted = formatFileSize(MAX_FILE_SIZE);
-            String fileSizeFormatted = formatFileSize(uploadFile.getSize());
-            addErrorMessage("Fichier trop volumineux : " + fileSizeFormatted +
-                    " (max: " + maxSizeFormatted + ")");
+    public void openFolder(String folderName) {
+        try {
+            Path newPath = Paths.get(currentPath, folderName).normalize();
+
+            if (!newPath.startsWith(Paths.get(BASE_PATH))) {
+                addErrorMessage("Accès non autorisé");
+                return;
+            }
+
+            if (!Files.exists(newPath) || !Files.isDirectory(newPath)) {
+                addErrorMessage("Le dossier n'existe pas");
+                return;
+            }
+
+            currentPath = newPath.toString();
+
+        } catch (Exception e) {
+            addErrorMessage("Erreur navigation: " + e.getMessage());
         }
     }
 
-    public void cancelUpload() {
-        uploading = false;
-        uploadProgress = 0;
-        uploadStatusMessage = "Upload annulé";
-        addInfoMessage("Upload annulé par l'utilisateur");
+    public void navigateToPath(String relativePath) {
+        try {
+            Path newPath = relativePath.isEmpty() ?
+                    Paths.get(BASE_PATH) :
+                    Paths.get(BASE_PATH, relativePath);
+
+            newPath = newPath.normalize();
+
+            if (!newPath.startsWith(Paths.get(BASE_PATH))) {
+                addErrorMessage("Chemin non autorisé");
+                return;
+            }
+
+            if (Files.exists(newPath) && Files.isDirectory(newPath)) {
+                currentPath = newPath.toString();
+            } else {
+                addErrorMessage("Le chemin n'existe pas");
+            }
+
+        } catch (Exception e) {
+            addErrorMessage("Erreur navigation: " + e.getMessage());
+        }
     }
 
-    private void resetUploadState() {
-        uploadFile = null;
-        uploadProgress = 0;
-        uploadStatusMessage = "";
-        // Le uploading reste à false
+    public List<String> getBreadcrumb() {
+        try {
+            String relativePath = Paths.get(BASE_PATH).relativize(Paths.get(currentPath)).toString();
+            if (relativePath.equals(".")) {
+                return Collections.emptyList();
+            }
+            return Arrays.asList(relativePath.split("\\\\"));
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
     }
+
+    public String buildPathUpTo(int index) {
+        try {
+            List<String> parts = getBreadcrumb();
+            if (index >= parts.size()) return String.join("\\", parts);
+            return String.join("\\", parts.subList(0, index + 1));
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    // ==================== UTILITAIRES ====================
+
     private void addErrorMessage(String message) {
         FacesContext.getCurrentInstance().addMessage(null,
                 new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erreur", message));
     }
 
-    /**
-     * Ajoute un message d'information
-     */
-    private void addInfoMessage(String message) {
+    private void addSuccessMessage(String message) {
         FacesContext.getCurrentInstance().addMessage(null,
-                new FacesMessage(FacesMessage.SEVERITY_INFO, "Information", message));
+                new FacesMessage(FacesMessage.SEVERITY_INFO, "Succès", message));
     }
 
-
-
-
-    public void handleCreateFolder() {
-        System.out.println("--[FOLDER] " + currentPath + "\\" + newFolderName);
-        try {
-            validateCurrentPathOrThrowAndReset(); // 🔹 Bloque si le dossier a disparu
-            Files.createDirectories(Paths.get(currentPath, newFolderName));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    // --- DELETE
-    public void delete(String filename) {
-        try {
-            validateCurrentPathOrThrowAndReset(); // 🔹 Bloque si le dossier a disparu
-            Path target = Paths.get(currentPath, filename);
-            if (Files.exists(target)) {
-                Files.deleteIfExists(target);
-            } else {
-                throw new IOException("Le fichier à supprimer n'existe pas : " + filename);
-            }
-        } catch (IOException e) {
-            System.err.println("Erreur suppression : " + e.getMessage());
-        }
-    }
-
-    // --- CHANGE
-
-
-    public void rename() {
-        try {
-            validateCurrentPathOrThrowAndReset(); // 🔹 Bloque si le dossier a disparu
-            Path source = Paths.get(currentPath, renameOldName);
-            if (!Files.exists(source)) {
-                throw new IOException("Le fichier/dossier à renommer n'existe pas : " + renameOldName);
-            }
-            Path target = Paths.get(currentPath, resolveConflictName(renameNewName));
-            Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            System.err.println("Erreur renommage : " + e.getMessage());
-        }
-    }
-
-    // UTILS
-
-    public List<String> getBreadcrumb() {
-        String relativePath = currentPath.replace(BASE_PATH, "");
-        if (relativePath.startsWith(File.separator)) {
-            relativePath = relativePath.substring(1);
-        }
-        List<String> parts = new ArrayList<>();
-        if (!relativePath.isBlank()) {
-            parts.addAll(Arrays.asList(relativePath.split(Pattern.quote(File.separator))));
-        }
-        return parts;
-    }
-
-    public void openFolder(String folderName) {
-        System.out.println("--[OPEN FOLDER] " + currentPath + "\\" + folderName);
-        Path newPath = Paths.get(currentPath, folderName);
-
-        // Sécurité : on vérifie que le chemin est bien sous BASE_PATH
-        if (!newPath.normalize().startsWith(Paths.get(BASE_PATH))) {
-            currentPath = BASE_PATH;
-            showErrorToast("Chemin non autorisé.");
-            return;
-        }
-
-        // Vérifie chaque sous-dossier depuis la racine
-        Path testPath = Paths.get(BASE_PATH);
-        for (Path part : Paths.get(BASE_PATH).relativize(newPath)) {
-            testPath = testPath.resolve(part);
-            if (!Files.exists(testPath) || !Files.isDirectory(testPath)) {
-                currentPath = BASE_PATH; // 🔹 Reset à la racine
-                showErrorToast("Le dossier a été renommé ou supprimé. Vous êtes revenu à la racine.");
-                return;
-            }
-        }
-        currentPath = newPath.toString();
-        System.out.println("--[OPEN FOLDER] SUCESS : " + currentPath);
-        System.out.println("--[OPEN FOLDER 2] " + Files.isDirectory(newPath));
-        System.out.println("--[OPEN FOLDER 2] " + Files.isDirectory(newPath));
-
-
-    }
-
-    public void navigateToPath(String relativePath) {
-        try {
-            validateCurrentPathOrThrowAndReset(); // 🔹 Bloque si le dossier a disparu
-            currentPath = Paths.get(BASE_PATH, relativePath).toString();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public String buildPathUpTo(int index) {
-        List<String> parts = getBreadcrumb();
-        return String.join(File.separator, parts.subList(0, index + 1));
-    }
-
-
-
-
-    public String getNewFolderName() {
-        return newFolderName;
-    }
-
-    public void setNewFolderName(String newFolderName) {
-        this.newFolderName = newFolderName;
-    }
-
-    public String getRenameOldName() {
-        return renameOldName;
-    }
-
-    public void setRenameOldName(String renameOldName) {
-        this.renameOldName = renameOldName;
-    }
-
-    public String getRenameNewName() {
-        return renameNewName;
-    }
-
-    public void setRenameNewName(String renameNewName) {
-        this.renameNewName = renameNewName;
+    // Méthode de test
+    public void testMethod() {
+        System.out.println("=== MÉTHODE DE TEST APPELÉE ===");
+        addSuccessMessage("Test réussi ! La communication JSF fonctionne.");
     }
 }
-
