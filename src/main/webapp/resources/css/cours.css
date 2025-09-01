@@ -568,51 +568,102 @@ body {
     margin-top: 0;
 }
 
-.event-projet-personnel {
-    background-color: #2e7d32;
+.event-bdd-avancees {
+    background-color: #1565c0;
     color: white;
-} /* Vert 700 */
-.event-systemes-exploitation {
+} /* Bleu 800 - Bases de données */
+
+.event-conception-objet {
+    background-color: #283593;
+    color: white;
+} /* Indigo 800 - Conception objet */
+
+.event-methodes-formelles {
+    background-color: #4527a0;
+    color: white;
+} /* Violet profond 800 - Méthodes formelles */
+
+.event-systemes-repartis {
     background-color: #1976d2;
     color: white;
-} /* Bleu 700 */
-.event-expression {
+} /* Bleu 700 - Systèmes répartis */
+
+.event-cryptographie {
+    background-color: #512da8;
+    color: white;
+} /* Violet 800 - Cryptographie */
+
+.event-tech-logicielles {
+    background-color: #3949ab;
+    color: white;
+} /* Indigo 600 - Technologies logicielles */
+
+.event-ingenierie-composants {
+    background-color: #1e88e5;
+    color: white;
+} /* Bleu 600 - Ingénierie composants */
+
+.event-implementation {
+    background-color: #039be5;
+    color: white;
+} /* Bleu clair 600 - Implémentation */
+
+.event-gestion-financiere {
+    background-color: #2e7d32;
+    color: white;
+} /* Vert 800 - Gestion financière */
+
+.event-droit-numerique {
+    background-color: #388e3c;
+    color: white;
+} /* Vert 700 - Droit numérique */
+
+.event-simulation-gestion {
+    background-color: #43a047;
+    color: white;
+} /* Vert 600 - Simulation gestion */
+
+.event-ter-projets {
     background-color: #f57c00;
     color: white;
-} /* Orange 700 */
-.event-management {
-    background-color: #7b1fa2;
-    color: white;
-} /* Violet 700 */
-.event-objet-avancees {
-    background-color: #303f9f;
-    color: white;
-} /* Indigo 700 */
-.event-comptable {
-    background-color: #5d4037;
-    color: white;
-} /* Brun 700 */
-.event-projet {
-    background-color: #455a64;
-    color: white;
-} /* Bleu-gris 700 */
-.event-activite {
-    background-color: #00796b;
-    color: white;
-} /* Sarcelle/Teal 700 */
-.event-presence {
-    background-color: #c1baba;
-    color: white;
-} /* Rouge 700 */
-.event-modelisation {
-    background-color: #689f38;
-    color: white;
-} /* Vert clair 700 */
-.event-javascript {
+} /* Orange 700 - TER Projets */
+
+.event-recherche-operationnelle {
     background-color: #e64a19;
     color: white;
-} /* Orange foncé 700 */
-.event-default {
-    background-color: #616161;
+} /* Orange rouge 700 - Recherche opérationnelle */
+
+.event-analyse-donnees {
+    background-color: #ff5722;
     color: white;
-} /* Gris 700 */
+} /* Rouge orange 500 - Analyse données */
+
+.event-statistiques {
+    background-color: #8e24aa;
+    color: white;
+} /* Violet 600 - Statistiques */
+
+.event-anglais-1 {
+    background-color: #00838f;
+    color: white;
+} /* Cyan 800 - Anglais 1 */
+
+.event-anglais-1-bis {
+    background-color: #0097a7;
+    color: white;
+} /* Cyan 700 - Anglais 1 bis */
+
+.event-presence {
+    background-color: #5d4037;
+    color: white;
+} /* Brun 800 - Présence universitaire */
+
+.event-rentree {
+    background-color: #6a4c93;
+    color: white;
+} /* Violet personnalisé - Rentrée */
+
+.event-default {
+    background-color: #546e7a;
+    color: white;
+} /* Bleu gris 600 - Défaut */

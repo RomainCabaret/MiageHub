@@ -6,6 +6,7 @@ import com.GlassFishJSF.utils.DateUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.context.SessionScoped;
+import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -23,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.*;
-
 @Named
 @SessionScoped
 public class CoursBean implements Serializable {
@@ -33,6 +33,10 @@ public class CoursBean implements Serializable {
 
     private List<Cours> allCours;
     private LocalDate semaineCourante;
+
+    // Nouvelles propriétés pour le week picker
+    private String weekPickerStart;
+    private String weekPickerEnd;
 
     private static final DateTimeFormatter FORMAT_FR =
             DateTimeFormatter.ofPattern("d MMMM", Locale.FRENCH);
@@ -49,6 +53,42 @@ public class CoursBean implements Serializable {
 
     public void semaineSuivante() {
         semaineCourante = semaineCourante.plusWeeks(1);
+    }
+
+    /**
+     * Nouvelle méthode pour appliquer la sélection du week picker - CORRIGÉE
+     */
+    public void appliquerSelectionSemaine() {
+        System.out.println("semaineCourante : " +  semaineCourante);
+        System.out.println( weekPickerStart.isEmpty());
+        if (weekPickerStart != null && !weekPickerStart.isEmpty()) {
+            try {
+                LocalDate dateSelectionnee = LocalDate.parse(weekPickerStart);
+
+                // CORRECTION : Ne pas utiliser .with(DayOfWeek.MONDAY) si c'est déjà un lundi
+                // Le JavaScript envoie déjà le lundi de la semaine
+                semaineCourante = dateSelectionnee;
+
+                System.out.println("📅 Date reçue du week picker: " + weekPickerStart);
+                System.out.println("📅 Semaine courante définie: " + semaineCourante);
+                System.out.println("📅 Jour de la semaine: " + semaineCourante.getDayOfWeek());
+
+                // Optionnel : afficher un message de confirmation
+                FacesContext.getCurrentInstance().addMessage(null,
+                        new FacesMessage(FacesMessage.SEVERITY_INFO,
+                                "Semaine sélectionnée",
+                                "Semaine du " + getPeriodeSemaine()));
+
+            } catch (Exception e) {
+                System.err.println("❌ Erreur lors de la sélection de semaine: " + e.getMessage());
+                FacesContext.getCurrentInstance().addMessage(null,
+                        new FacesMessage(FacesMessage.SEVERITY_ERROR,
+                                "Erreur",
+                                "Impossible de sélectionner cette semaine"));
+            }
+        } else{
+            System.out.println("semaineCourante : IS NULL" );
+        }
     }
 
     public String getPeriodeSemaine() {
@@ -87,6 +127,27 @@ public class CoursBean implements Serializable {
         return semaineCourante;
     }
 
+    public void setSemaineCourante(LocalDate semaineCourante) {
+        this.semaineCourante = semaineCourante;
+    }
+
+    // Getters et setters pour le week picker
+    public String getWeekPickerStart() {
+        return weekPickerStart;
+    }
+
+    public void setWeekPickerStart(String weekPickerStart) {
+        this.weekPickerStart = weekPickerStart;
+    }
+
+    public String getWeekPickerEnd() {
+        return weekPickerEnd;
+    }
+
+    public void setWeekPickerEnd(String weekPickerEnd) {
+        this.weekPickerEnd = weekPickerEnd;
+    }
+
     public String getJourFrancais(java.time.DayOfWeek day) {
         switch (day) {
             case MONDAY: return "Lundi";
@@ -113,26 +174,44 @@ public class CoursBean implements Serializable {
     }
 
     private static final Map<String, String> COURS_COLORS = Map.ofEntries(
-            Map.entry("Projet Personnel d'Etudes et d'Insertion", "event-projet-personnel"),
-            Map.entry("Systèmes d'exploitation", "event-systemes-exploitation"),
-            Map.entry("Expression écrite orale", "event-expression"),
-            Map.entry("Management des systèmes d'information", "event-management"),
-            Map.entry("Technologies objet avancées", "event-objet-avancees"),
-            Map.entry("Système comptable", "event-comptable"),
-            Map.entry("Projet", "event-projet"),
-            Map.entry("Activité", "event-activite"),
+            // Matières techniques - Nuances de bleu et violet
+            Map.entry("Bases de données avancées", "event-bdd-avancees"),
+            Map.entry("Conception orientée objet de logiciel", "event-conception-objet"),
+            Map.entry("Méthodes formelles pour le génie logiciel", "event-methodes-formelles"),
+            Map.entry("Systèmes et applications répartis", "event-systemes-repartis"),
+            Map.entry("Cryptographie et sécurité", "event-cryptographie"),
+            Map.entry("Technologies logicielles", "event-tech-logicielles"),
+            Map.entry("Ingénierie des composants", "event-ingenierie-composants"),
+            Map.entry("Implémentation du projet", "event-implementation"),
+
+            // Matières de gestion et droit - Nuances de vert et bleu-vert
+            Map.entry("Gestion financière", "event-gestion-financiere"),
+            Map.entry("Droit numérique", "event-droit-numerique"),
+            Map.entry("Simulation de Gestion d'Entreprise", "event-simulation-gestion"),
+
+            // Projets et recherche - Nuances d'orange et rouge-orange
+            Map.entry("TER-Projets", "event-ter-projets"),
+            Map.entry("Recherche opérationnelle", "event-recherche-operationnelle"),
+            Map.entry("Analyse de données", "event-analyse-donnees"),
+
+            // Matières scientifiques - Nuances de violet et magenta
+            Map.entry("Statistiques", "event-statistiques"),
+
+            // Langues et communication - Nuances de teal et cyan
+            Map.entry("Anglais 1", "event-anglais-1"),
+            Map.entry("Anglais 1 bis", "event-anglais-1-bis"),
+
+            // Administratif - Couleurs neutres mais distinctes
             Map.entry("PRESENCE UNIVERSITAIRE", "event-presence"),
-            Map.entry("Modélisation objet", "event-modelisation"),
-            Map.entry("Technologie Javascript", "event-javascript")
+            Map.entry("RENTREE", "event-rentree")
     );
 
     public String getCssClassForCours(String matiere, String cours) {
-        return COURS_COLORS.getOrDefault(matiere, "event-default") + (cours.equals("EXAMEN") ? " schedule__event--exam" : "");
+        return COURS_COLORS.getOrDefault(matiere, "event-default") +
+                (cours.equals("EXAMEN") ? " schedule__event--exam" : "");
     }
 
     public String redirectionIntoDriver() {
         return "drive?faces-redirect=true";
     }
-
 }
-

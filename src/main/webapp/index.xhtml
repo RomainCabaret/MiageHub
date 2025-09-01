@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://xmlns.jcp.org/jsf/html"
-      xmlns:ui="jakarta.faces.facelets">
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:p="http://primefaces.org/ui">
 <h:head>
     <title>Emploi du temps</title>
     <h:outputStylesheet library="css" name="cours.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css"/>
+
     <script>
         function showCourseDetails(title, time, room, content) {
             const popup = document.getElementById("course-popup");
@@ -29,6 +32,65 @@
             document.getElementById("course-popup").classList.add("hidden");
         });
     </script>
+    <style>
+        .week-picker-container {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .week-picker-input {
+            width: 300px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .week-info {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+
+        /* Styles pour la sélection de semaine */
+        .flatpickr-day.selected,
+        .flatpickr-day.startRange,
+        .flatpickr-day.endRange,
+        .flatpickr-day.inRange {
+            background: #007bff !important;
+            border-color: #007bff !important;
+            color: white !important;
+        }
+
+        .flatpickr-day.inRange {
+            opacity: 0.7;
+        }
+
+        .primefaces-integration {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #007bff;
+            border-radius: 5px;
+            background-color: #f0f8ff;
+        }
+        .flatpickr-input[readonly]{
+            cursor: pointer;
+            width: 0px;
+            height: 0px;
+            margin-left: auto;
+            position: relative;
+            top: 20px;
+            border: none;
+        }
+    </style>
+    <script type="text/javascript">
+        // Récupération de la semaine courante depuis le bean JSF
+        var currentWeekStart = '#{coursBean.semaineCourante}';
+        console.log('📅 Semaine courante JSF:', currentWeekStart);
+    </script>
 </h:head>
 <h:body>
     <main class="schedule" aria-labelledby="schedule-title">
@@ -36,6 +98,32 @@
             <h1 id="schedule-title" class="schedule__title">
                 Emploi du temps — Semaine
             </h1>
+            <h:form id="navigationForm">
+
+
+                <button type="button" id="weekPickerBtn" class="week-picker-btn">
+                    📅 Sélectionner une semaine
+                </button>
+
+                <!-- Champs cachés pour le week picker -->
+                <h:inputHidden id="selectedWeekStart" value="#{coursBean.weekPickerStart}"/>
+                <h:inputHidden id="selectedWeekEnd" value="#{coursBean.weekPickerEnd}"/>
+
+                <!-- Bouton caché pour déclencher l'action JSF -->
+                <h:commandButton id="applyWeekSelection"
+                                 action="#{coursBean.appliquerSelectionSemaine}"
+                                 style="display: none;"
+                                 update="navigationForm coursContainer"
+                                 onclick="setTimeout(updatePickerFromJSF, 200);"/>
+
+                />
+
+
+                <h:inputHidden id="currentWeekMonday" value="#{coursBean.semaineCourante}"/>
+
+            </h:form>
+
+            <input type="hidden" id="weekPicker"/>
 
             <!-- Contrôles: navigation de semaine + thème -->
             <div class="schedule__controls">
@@ -43,13 +131,13 @@
                     <h:form>
                         <h:commandButton value="‹" action="#{coursBean.semainePrecedente}"
                                          styleClass="schedule__nav-btn schedule__nav-btn--prev"
-                                         title="Semaine précédente" />
+                                         title="Semaine précédente"/>
                         <span class="schedule__week" aria-live="polite">
             #{coursBean.periodeSemaine}
         </span>
                         <h:commandButton value="›" action="#{coursBean.semaineSuivante}"
                                          styleClass="schedule__nav-btn schedule__nav-btn--next"
-                                         title="Semaine suivante" />
+                                         title="Semaine suivante"/>
                     </h:form>
                 </div>
 
@@ -76,23 +164,23 @@
                 </div>
             </div>
 
-<!--            <ul class="schedule__legend" aria-label="Légende des matières">-->
-<!--                <li class="schedule__legend-item schedule__legend-item&#45;&#45;cs">-->
-<!--                    Informatique-->
-<!--                </li>-->
-<!--                <li class="schedule__legend-item schedule__legend-item&#45;&#45;math">-->
-<!--                    Mathématiques-->
-<!--                </li>-->
-<!--                <li class="schedule__legend-item schedule__legend-item&#45;&#45;lab">-->
-<!--                    TP / Projet-->
-<!--                </li>-->
-<!--                <li class="schedule__legend-item schedule__legend-item&#45;&#45;exam">-->
-<!--                    Examen-->
-<!--                </li>-->
-<!--                <li class="schedule__legend-item schedule__legend-item&#45;&#45;break">-->
-<!--                    Pause-->
-<!--                </li>-->
-<!--            </ul>-->
+            <!--            <ul class="schedule__legend" aria-label="Légende des matières">-->
+            <!--                <li class="schedule__legend-item schedule__legend-item&#45;&#45;cs">-->
+            <!--                    Informatique-->
+            <!--                </li>-->
+            <!--                <li class="schedule__legend-item schedule__legend-item&#45;&#45;math">-->
+            <!--                    Mathématiques-->
+            <!--                </li>-->
+            <!--                <li class="schedule__legend-item schedule__legend-item&#45;&#45;lab">-->
+            <!--                    TP / Projet-->
+            <!--                </li>-->
+            <!--                <li class="schedule__legend-item schedule__legend-item&#45;&#45;exam">-->
+            <!--                    Examen-->
+            <!--                </li>-->
+            <!--                <li class="schedule__legend-item schedule__legend-item&#45;&#45;break">-->
+            <!--                    Pause-->
+            <!--                </li>-->
+            <!--            </ul>-->
         </header>
 
         <!-- ===== Version bureau/tablette (grille) ===== -->
@@ -176,11 +264,13 @@
                 </div>
 
                 <!-- Cours dynamiques -->
-                <ui:repeat value="#{coursBean.coursParJour.values().stream().flatMap(l -> l.stream()).toList()}" var="c">
-                    <article class="schedule__event COURSE__POPUP__ENABLED  #{coursBean.getCssClassForCours(c.matiere, c.typeCours)} "
-                             style="grid-column: #{coursBean.gridColumn(c.date)};
+                <ui:repeat value="#{coursBean.coursParJour.values().stream().flatMap(l -> l.stream()).toList()}"
+                           var="c">
+                    <article
+                            class="schedule__event COURSE__POPUP__ENABLED  #{coursBean.getCssClassForCours(c.matiere, c.typeCours)} "
+                            style="grid-column: #{coursBean.gridColumn(c.date)};
        grid-row: #{coursBean.gridRow(c.timestampDebut)} / span #{coursBean.rowSpan(c.timestampDebut, c.timestampFin)}"
-                             onclick="showCourseDetails(`#{c.matiere}`, `#{c.timestampDebut.toLocalDateTime().toLocalTime()}–#{c.timestampFin.toLocalDateTime().toLocalTime()}`, `#{c.salle}`, `#{c.content}`)">
+                            onclick="showCourseDetails(`#{c.matiere}`, `#{c.timestampDebut.toLocalDateTime().toLocalTime()}–#{c.timestampFin.toLocalDateTime().toLocalTime()}`, `#{c.salle}`, `#{c.content}`)">
                         <h3 class="schedule__event-title COURSE__POPUP__ENABLED">#{c.matiere}</h3>
                         <p class="schedule__event-meta COURSE__POPUP__ENABLED">
                             #{c.timestampDebut.toLocalDateTime().toLocalTime()}–#{c.timestampFin.toLocalDateTime().toLocalTime()} · Salle #{c.salle}
@@ -189,20 +279,20 @@
                             <p class="schedule__event-meta COURSE__POPUP__ENABLED">#{c.typeCours}</p>
                         </ui:fragment>
 
-<!--                        <ui:fragment rendered="#{not empty c.groupe and c.groupe ne 'PRESENCE UNIVERSITAIRE'}">-->
-<!--                            <p class="schedule__event-meta">#{c.groupe}</p>-->
-<!--                        </ui:fragment>-->
+                        <!--                        <ui:fragment rendered="#{not empty c.groupe and c.groupe ne 'PRESENCE UNIVERSITAIRE'}">-->
+                        <!--                            <p class="schedule__event-meta">#{c.groupe}</p>-->
+                        <!--                        </ui:fragment>-->
                         <!--                        <p class="schedule__event-meta">#{c.content}</p>-->
 
                     </article>
                 </ui:repeat>
             </section>
 
-<!--            <p class="schedule__hint">-->
-<!--                Astuce: adaptez les positions en modifiant grid-column (jour: 2 =-->
-<!--                Lundi ... 6 = Vendredi) et grid-row (08:00 = 1, +1 par 30 min).-->
-<!--                grid-row: X / span Y, où Y = durée en pas de 30 min.-->
-<!--            </p>-->
+            <!--            <p class="schedule__hint">-->
+            <!--                Astuce: adaptez les positions en modifiant grid-column (jour: 2 =-->
+            <!--                Lundi ... 6 = Vendredi) et grid-row (08:00 = 1, +1 par 30 min).-->
+            <!--                grid-row: X / span Y, où Y = durée en pas de 30 min.-->
+            <!--            </p>-->
         </div>
 
         <!-- ===== Variante mobile (accordéon) ===== -->
@@ -224,7 +314,8 @@
                         </summary>
                         <div class="schedule-accordion__panel">
                             <ui:repeat value="#{entry.value}" var="c">
-                                <article class="schedule__event #{coursBean.getCssClassForCours(c.matiere, c.typeCours)}">
+                                <article
+                                        class="schedule__event #{coursBean.getCssClassForCours(c.matiere, c.typeCours)}">
                                     <h3 class="schedule__event-title">#{c.matiere}</h3>
                                     <p class="schedule__event-meta">
                                         #{c.timestampDebut.toLocalDateTime().toLocalTime()}
@@ -251,7 +342,8 @@
                         </summary>
                         <div class="schedule-accordion__panel">
                             <ui:repeat value="#{entry.value}" var="c">
-                                <article class="schedule__event #{coursBean.getCssClassForCours(c.matiere, c.typeCours)}">
+                                <article
+                                        class="schedule__event #{coursBean.getCssClassForCours(c.matiere, c.typeCours)}">
                                     <h3 class="schedule__event-title">#{c.matiere}</h3>
                                     <p class="schedule__event-meta">
                                         #{c.timestampDebut.toLocalDateTime().toLocalTime()}
@@ -278,11 +370,194 @@
         </div>
 
         <h:form>
-            <h:commandButton value="Driver" action="#{coursBean.redirectionIntoDriver}" />
+            <h:commandButton value="Driver" action="#{coursBean.redirectionIntoDriver}"/>
         </h:form>
 
 
-
     </main>
+    <!-- Flatpickr JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+
+    <!-- Config Week Picker -->
+    <script>
+        let flatpickrInstance = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeWeekPicker();
+            // Synchroniser immédiatement avec la semaine courante
+            setTimeout(updatePickerFromJSF, 100);
+        });
+
+
+        // Utilitaires pour les dates
+        function getMonday(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(d.setDate(diff));
+        }
+
+        function getSunday(date) {
+            const monday = getMonday(date);
+            return new Date(monday.getTime() + 6 * 24 * 60 * 60 * 1000);
+        }
+
+        function getWeekNumber(date) {
+            // Utiliser la même logique que Flatpickr (ISO 8601)
+            const target = new Date(date.valueOf());
+            const dayNumber = (date.getDay() + 6) % 7;
+            target.setDate(target.getDate() - dayNumber + 3);
+            const firstThursday = target.valueOf();
+            target.setMonth(0, 1);
+            if (target.getDay() !== 4) {
+                target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+            }
+            return 1 + Math.ceil((firstThursday - target) / 604800000);
+        }
+
+        function updatePickerFromJSF() {
+            if (!flatpickrInstance) return;
+
+            const currentWeekField = document.getElementById('navigationForm:currentWeekMonday');
+            if (!currentWeekField || !currentWeekField.value) return;
+
+            const currentMonday = new Date(currentWeekField.value);
+            const currentSunday = new Date(currentMonday);
+            currentSunday.setDate(currentMonday.getDate() + 6);
+
+            console.log('🔄 Synchronisation picker avec:', currentMonday.toLocaleDateString('fr-FR'));
+
+            // Mettre à jour le picker sans déclencher l'événement onChange
+            flatpickrInstance.setDate([currentMonday, currentSunday], false);
+            updateButtonText(currentMonday, currentSunday);
+        }
+
+        function updateButtonText(monday, sunday) {
+            const weekNumber = getWeekNumber(monday);
+            const mondayStr = monday.toLocaleDateString('fr-FR', {
+                day: 'numeric',
+                month: 'short'
+            });
+            const sundayStr = sunday.toLocaleDateString('fr-FR', {
+                day: 'numeric',
+                month: 'short'
+            });
+
+            document.getElementById('weekPickerBtn').textContent =
+                `📅 Semaine ${weekNumber} (${mondayStr} - ${sundayStr})`;
+        }
+
+        // Configuration Flatpickr
+
+
+        // Gestionnaire de clic sur le bouton
+        document.getElementById('weekPickerBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            // Synchroniser avant d'ouvrir
+            updatePickerFromJSF();
+            flatpickrInstance.open();
+        });
+
+        // Mise à jour des champs JSF et déclenchement de l'action
+        function updateJSFFields(monday, sunday) {
+            const weekStartField = document.getElementById('navigationForm:selectedWeekStart');
+            const weekEndField = document.getElementById('navigationForm:selectedWeekEnd');
+
+            if (weekStartField) weekStartField.value = monday.toISOString().split('T')[0];
+            if (weekEndField) weekEndField.value = sunday.toISOString().split('T')[0];
+
+            // Déclencher l'action JSF après un petit délai
+            setTimeout(function () {
+                document.getElementById('navigationForm:applyWeekSelection').click();
+            }, 100);
+        }
+
+
+        function initializeWeekPicker() {
+            // Configuration Flatpickr
+            flatpickrInstance = flatpickr("#weekPicker", {
+                mode: "range",
+                inline: false,
+                dateFormat: "Y-m-d",
+                weekNumbers: false,
+                clickOpens: false,
+                locale: {
+                    firstDayOfWeek: 1,
+                    weekdays: {
+                        shorthand: ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'],
+                        longhand: ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
+                    },
+                    months: {
+                        shorthand: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jui', 'Jui', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'],
+                        longhand: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
+                    },
+                    rangeSeparator: ' au ',
+                    weekAbbreviation: 'Sem.'
+                },
+                onReady: function(selectedDates, dateStr, instance) {
+                    // Synchroniser avec la semaine courante au chargement
+                    setTimeout(function() {
+                        updatePickerFromJSF();
+
+                        const weekNumbers = instance.calendarContainer.querySelectorAll('.flatpickr-weeknumber');
+                        weekNumbers.forEach(function(weekNumElement) {
+                            weekNumElement.addEventListener('click', function() {
+                                const weekNumber = parseInt(this.textContent);
+                                selectWeekByNumber(weekNumber, instance);
+                            });
+                        });
+                    }, 200);
+                },
+                onChange: function(selectedDates, dateStr, instance) {
+                    console.log('📅 onChange déclenché avec', selectedDates.length, 'dates');
+
+                    if (selectedDates.length >= 1) {
+                        const selectedDate = selectedDates[0];
+                        const monday = getMonday(selectedDate);
+                        const sunday = getSunday(selectedDate);
+
+                        console.log('📅 Semaine calculée:', monday.toLocaleDateString('fr-FR'), '-', sunday.toLocaleDateString('fr-FR'));
+
+                        // Mettre à jour le picker pour afficher la semaine complète
+                        instance.setDate([monday, sunday], false);
+                        updateButtonText(monday, sunday);
+                        updateJSFFields(monday, sunday);
+                    }
+                }
+            });
+
+            // Gestionnaire de clic sur le bouton
+            document.getElementById('weekPickerBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                // Synchroniser avant d'ouvrir
+                updatePickerFromJSF();
+                flatpickrInstance.open();
+            });
+
+            function selectWeekByNumber(weekNumber, instance) {
+                const currentYear = new Date().getFullYear();
+
+                // Trouver le 4 janvier de l'année courante (toujours en semaine 1 selon ISO 8601)
+                const jan4 = new Date(currentYear, 0, 4);
+
+                // Trouver le lundi de la semaine du 4 janvier
+                const jan4DayOfWeek = (jan4.getDay() + 6) % 7; // Lundi = 0
+                const firstMonday = new Date(jan4);
+                firstMonday.setDate(jan4.getDate() - jan4DayOfWeek);
+
+                // Calculer le lundi de la semaine demandée
+                const targetMonday = new Date(firstMonday);
+                targetMonday.setDate(firstMonday.getDate() + (weekNumber - 1) * 7);
+
+                // Calculer le dimanche correspondant
+                const targetSunday = new Date(targetMonday);
+                targetSunday.setDate(targetMonday.getDate() + 6);
+
+                console.log(`Sélection semaine ${weekNumber}: du ${targetMonday.toLocaleDateString('fr-FR')} au ${targetSunday.toLocaleDateString('fr-FR')}`);
+
+                instance.setDate([targetMonday, targetSunday], true);
+            }
+        }
+    </script>
 </h:body>
 </html>

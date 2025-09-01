@@ -13,8 +13,6 @@ import java.util.Optional;
 
 @ApplicationScoped
 public class CoursDAO {
-
-
     @PersistenceContext(unitName = "myPU")
     private EntityManager em;
 

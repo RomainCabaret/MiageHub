@@ -4,6 +4,7 @@ import com.GlassFishJSF.dao.CoursDAO;
 import com.GlassFishJSF.model.Cours;
 import com.GlassFishJSF.scraping.SemaineHelper;
 import com.GlassFishJSF.scraping.WebScraperHelper;
+import io.github.bonigarcia.wdm.WebDriverManager;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -47,11 +48,15 @@ public class HyperplanningService {
     public void scrapAllWeeks() {
         System.setProperty("webdriver.chrome.driver", "C:\\Program Files\\chromeDriver\\chromedriver.exe");
 
+        WebDriverManager.chromedriver().setup();
+
+
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--headless=new");
         options.addArguments("--disable-gpu");
         options.addArguments("--window-size=1920,901");
         options.addArguments("--remote-allow-origins=*");
+
 
         WebDriver driver = new ChromeDriver(options);
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
@@ -66,7 +71,7 @@ public class HyperplanningService {
 
             WebElement editInput = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("GInterface.Instances[1].Instances[1].bouton_Edit")));
             editInput.clear();
-            editInput.sendKeys("L3MIAX132", Keys.ENTER);
+            editInput.sendKeys("M1ILWY142", Keys.ENTER);
             Thread.sleep(1500);
 
             // Boucle sur toutes les semaines

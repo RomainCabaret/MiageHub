@@ -26,6 +26,7 @@ public class AdminController implements Serializable {
             hyperplanningService.scrapAllWeeks();
             message = "Scraping terminé et planning mis à jour ✅";
         } catch (Exception e) {
+            System.err.println("❌ Erreur lors du scraping ❌ : " + e.getMessage());
             message = "Erreur lors du scraping ❌";
         }
     }
