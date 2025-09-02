@@ -5,7 +5,7 @@ import java.time.temporal.ChronoUnit;
 
 public class SemaineHelper {
 
-    private static final LocalDate PREMIERE_SEMAINE = LocalDate.of(2024, 9, 2); // 1er sept 2024
+    private static final LocalDate PREMIERE_SEMAINE = LocalDate.of(2025, 9, 1); // 1er sept 2025
     private static final String SWAP_WEEK_ID = "GInterface.Instances[1].Instances[3]_j_";
 
     /**

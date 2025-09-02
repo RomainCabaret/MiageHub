@@ -75,8 +75,8 @@ public class HyperplanningService {
             Thread.sleep(1500);
 
             // Boucle sur toutes les semaines
-            LocalDate debut = LocalDate.of(2024, 9, 2);
-            LocalDate fin = LocalDate.of(2025, 7, 7);
+            LocalDate debut = LocalDate.of(2025, 9, 2);
+            LocalDate fin = LocalDate.of(2026, 7, 7);
             LocalDate date = debut;
 
             while (!date.isAfter(fin)) {

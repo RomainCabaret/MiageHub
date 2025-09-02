@@ -55,6 +55,7 @@ public class WebScraperHelper {
                     groupe = type;
                     salles = ["Non spécifié (salle)"];
                   } else {
+                    const getTextSafe = (index, fallback) => spans[index]?.innerText.trim() || `Non spécifié (${fallback})`;
                     type = getTextSafe(0, "type");
                     matiere = getTextSafe(1, "matière");
                     groupe = getTextSafe(2, "groupe");
@@ -74,7 +75,7 @@ public class WebScraperHelper {
                 
                   const spanDate = element.querySelector(".sr-only");
                   const texteDate = spanDate?.innerText || "";
-                  const regexDate = /Cours du (\\d{1,2}) (\\w+)/;
+                  const regexDate = /Cours du (\\d{1,2}) ([A-Za-zÀ-ÖØ-öø-ÿ]+)/;
                   const match = texteDate.match(regexDate);
                   let cleJour = "Inconnu";
                 

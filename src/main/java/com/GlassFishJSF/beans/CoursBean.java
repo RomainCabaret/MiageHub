@@ -59,35 +59,34 @@ public class CoursBean implements Serializable {
      * Nouvelle méthode pour appliquer la sélection du week picker - CORRIGÉE
      */
     public void appliquerSelectionSemaine() {
-        System.out.println("semaineCourante : " +  semaineCourante);
-        System.out.println( weekPickerStart.isEmpty());
+        System.out.println("semaineCourante : " + semaineCourante);
+        System.out.println(weekPickerStart.isEmpty());
+
         if (weekPickerStart != null && !weekPickerStart.isEmpty()) {
             try {
                 LocalDate dateSelectionnee = LocalDate.parse(weekPickerStart);
 
-                // CORRECTION : Ne pas utiliser .with(DayOfWeek.MONDAY) si c'est déjà un lundi
-                // Le JavaScript envoie déjà le lundi de la semaine
-                semaineCourante = dateSelectionnee;
+                if (dateSelectionnee.getDayOfWeek() == DayOfWeek.SUNDAY) {
+                    semaineCourante = dateSelectionnee.plusDays(1); // Lundi suivant
+                } else {
+                    semaineCourante = dateSelectionnee.with(DayOfWeek.MONDAY);
+                }
 
                 System.out.println("📅 Date reçue du week picker: " + weekPickerStart);
                 System.out.println("📅 Semaine courante définie: " + semaineCourante);
                 System.out.println("📅 Jour de la semaine: " + semaineCourante.getDayOfWeek());
 
-                // Optionnel : afficher un message de confirmation
                 FacesContext.getCurrentInstance().addMessage(null,
-                        new FacesMessage(FacesMessage.SEVERITY_INFO,
-                                "Semaine sélectionnée",
+                        new FacesMessage(FacesMessage.SEVERITY_INFO, "Semaine sélectionnée",
                                 "Semaine du " + getPeriodeSemaine()));
-
             } catch (Exception e) {
                 System.err.println("❌ Erreur lors de la sélection de semaine: " + e.getMessage());
                 FacesContext.getCurrentInstance().addMessage(null,
-                        new FacesMessage(FacesMessage.SEVERITY_ERROR,
-                                "Erreur",
+                        new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erreur",
                                 "Impossible de sélectionner cette semaine"));
             }
-        } else{
-            System.out.println("semaineCourante : IS NULL" );
+        } else {
+            System.out.println("semaineCourante : IS NULL");
         }
     }
 
