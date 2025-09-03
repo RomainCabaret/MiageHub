@@ -76,13 +76,14 @@
             border-radius: 5px;
             background-color: #f0f8ff;
         }
-        .flatpickr-input[readonly]{
+
+        .flatpickr-input[readonly] {
             cursor: pointer;
             width: 0px;
             height: 0px;
             margin-left: auto;
             position: relative;
-            top: 20px;
+            top: 60px;
             border: none;
         }
     </style>
@@ -98,71 +99,52 @@
             <h1 id="schedule-title" class="schedule__title">
                 Emploi du temps — Semaine
             </h1>
-            <h:form id="navigationForm">
 
 
-                <button type="button" id="weekPickerBtn" class="week-picker-btn">
-                    📅 Sélectionner une semaine
-                </button>
+            <div>
+                <input type="hidden" id="weekPicker"/>
+                <div class="schedule__controls">
+                    <div class="schedule__nav" role="group" aria-label="Navigation des semaines">
+                        <h:form>
+                            <h:commandButton value="‹" action="#{coursBean.semainePrecedente}"
+                                             styleClass="schedule__nav-btn schedule__nav-btn--prev"
+                                             title="Semaine précédente"/>
 
-                <!-- Champs cachés pour le week picker -->
-                <h:inputHidden id="selectedWeekStart" value="#{coursBean.weekPickerStart}"/>
-                <h:inputHidden id="selectedWeekEnd" value="#{coursBean.weekPickerEnd}"/>
+                        </h:form>
 
-                <!-- Bouton caché pour déclencher l'action JSF -->
-                <h:commandButton id="applyWeekSelection"
-                                 action="#{coursBean.appliquerSelectionSemaine}"
-                                 style="display: none;"
-                                 update="navigationForm coursContainer"
-                                 onclick="setTimeout(updatePickerFromJSF, 200);"/>
+                        <h:form id="navigationForm">
+
+                            <button type="button" id="weekPickerBtn" class="schedule__week">
+                                📅 #{coursBean.periodeSemaine}
+                            </button>
+
+                            <!-- Champs cachés pour le week picker -->
+                            <h:inputHidden id="selectedWeekStart" value="#{coursBean.weekPickerStart}"/>
+                            <h:inputHidden id="selectedWeekEnd" value="#{coursBean.weekPickerEnd}"/>
+
+                            <!-- Bouton caché pour déclencher l'action JSF -->
+                            <h:commandButton id="applyWeekSelection"
+                                             action="#{coursBean.appliquerSelectionSemaine}"
+                                             style="display: none;"
+                                             update="navigationForm coursContainer"
+                                             onclick="setTimeout(updatePickerFromJSF, 200);"/>
 
 
-                <h:inputHidden id="currentWeekMonday" value="#{coursBean.semaineCourante}">
-                    <f:converter converterId="localDateConverter"/>
-                </h:inputHidden>
+                            <h:inputHidden id="currentWeekMonday" value="#{coursBean.semaineCourante}">
+                                <f:converter converterId="localDateConverter"/>
+                            </h:inputHidden>
 
-            </h:form>
+                        </h:form>
+                        <h:form>
+                            <h:commandButton value="›" action="#{coursBean.semaineSuivante}"
+                                             styleClass="schedule__nav-btn schedule__nav-btn--next"
+                                             title="Semaine suivante"/>
+                        </h:form>
+                    </div>
 
-            <input type="hidden" id="weekPicker"/>
-
-            <!-- Contrôles: navigation de semaine + thème -->
-            <div class="schedule__controls">
-                <div class="schedule__nav" role="group" aria-label="Navigation des semaines">
-                    <h:form>
-                        <h:commandButton value="‹" action="#{coursBean.semainePrecedente}"
-                                         styleClass="schedule__nav-btn schedule__nav-btn--prev"
-                                         title="Semaine précédente"/>
-                        <span class="schedule__week" aria-live="polite">
-            #{coursBean.periodeSemaine}
-        </span>
-                        <h:commandButton value="›" action="#{coursBean.semaineSuivante}"
-                                         styleClass="schedule__nav-btn schedule__nav-btn--next"
-                                         title="Semaine suivante"/>
-                    </h:form>
-                </div>
-
-                <div class="schedule__theme">
-                    <input
-                            id="theme-toggle"
-                            class="schedule__theme-input"
-                            type="checkbox"
-                            aria-label="Basculer le thème sombre"
-                    />
-                    <label class="schedule__theme-button" for="theme-toggle">
-              <span
-                      class="schedule__theme-icon schedule__theme-icon--light"
-                      aria-hidden="true"
-              >☀︎</span
-              >
-                        <span
-                                class="schedule__theme-icon schedule__theme-icon--dark"
-                                aria-hidden="true"
-                        >☾</span
-                        >
-                        <span class="schedule__theme-text">Thème</span>
-                    </label>
                 </div>
             </div>
+
 
             <!--            <ul class="schedule__legend" aria-label="Légende des matières">-->
             <!--                <li class="schedule__legend-item schedule__legend-item&#45;&#45;cs">-->
@@ -382,7 +364,7 @@
     <script>
         let flatpickrInstance = null;
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             initializeWeekPicker();
             // Synchroniser immédiatement avec la semaine courante
             setTimeout(updatePickerFromJSF, 100);
@@ -443,15 +425,18 @@
                 month: 'short'
             });
 
+            /*
             document.getElementById('weekPickerBtn').textContent =
                 `📅 Semaine ${weekNumber} (${mondayStr} - ${sundayStr})`;
+                */
+
         }
 
         // Configuration Flatpickr
 
 
         // Gestionnaire de clic sur le bouton
-        document.getElementById('weekPickerBtn').addEventListener('click', function(e) {
+        document.getElementById('weekPickerBtn').addEventListener('click', function (e) {
             e.preventDefault();
             // Synchroniser avant d'ouvrir
             updatePickerFromJSF();
@@ -494,21 +479,21 @@
                     rangeSeparator: ' au ',
                     weekAbbreviation: 'Sem.'
                 },
-                onReady: function(selectedDates, dateStr, instance) {
+                onReady: function (selectedDates, dateStr, instance) {
                     // Synchroniser avec la semaine courante au chargement
-                    setTimeout(function() {
+                    setTimeout(function () {
                         updatePickerFromJSF();
 
                         const weekNumbers = instance.calendarContainer.querySelectorAll('.flatpickr-weeknumber');
-                        weekNumbers.forEach(function(weekNumElement) {
-                            weekNumElement.addEventListener('click', function() {
+                        weekNumbers.forEach(function (weekNumElement) {
+                            weekNumElement.addEventListener('click', function () {
                                 const weekNumber = parseInt(this.textContent);
                                 selectWeekByNumber(weekNumber, instance);
                             });
                         });
                     }, 200);
                 },
-                onChange: function(selectedDates, dateStr, instance) {
+                onChange: function (selectedDates, dateStr, instance) {
                     console.log('📅 onChange déclenché avec', selectedDates.length, 'dates');
 
                     if (selectedDates.length >= 1) {
@@ -527,7 +512,7 @@
             });
 
             // Gestionnaire de clic sur le bouton
-            document.getElementById('weekPickerBtn').addEventListener('click', function(e) {
+            document.getElementById('weekPickerBtn').addEventListener('click', function (e) {
                 e.preventDefault();
                 // Synchroniser avant d'ouvrir
                 updatePickerFromJSF();
