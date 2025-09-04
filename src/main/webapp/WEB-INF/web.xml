@@ -83,6 +83,8 @@
 <!--        <location>server-error.xhtml</location>-->
 <!--    </error-page>-->
 
+
+
     <!-- 🔹 Paramètres de sécurité -->
     <security-constraint>
         <web-resource-collection>
@@ -95,4 +97,25 @@
         <auth-constraint/>
     </security-constraint>
 
+
+    <mime-mapping>
+        <extension>eot</extension>
+        <mime-type>application/vnd.ms-fontobject</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>ttf</extension>
+        <mime-type>font/ttf</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>woff</extension>
+        <mime-type>font/woff</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>woff2</extension>
+        <mime-type>font/woff2</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>svg</extension>
+        <mime-type>image/svg+xml</mime-type>
+    </mime-mapping>
 </web-app>

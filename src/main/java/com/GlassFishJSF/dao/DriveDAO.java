@@ -4,6 +4,10 @@ import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Named;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.faces.context.ExternalContext;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.file.UploadedFile;
 
@@ -77,33 +81,6 @@ public class DriveDAO implements Serializable {
         }
 
         System.out.println("=== FIN handleFileUpload (Event) ===");
-    }
-
-    /**
-     * Alternative : méthode appelée si pas d'auto (avec commandButton)
-     * Utilise la variable uploadedFile bindée dans le JSF
-     */
-    public void processUpload() {
-        System.out.println("=== DÉBUT processUpload (Manuel) ===");
-
-        try {
-            System.out.println("Fichier reçu via binding: " + (uploadedFile != null ? uploadedFile.getFileName() : "NULL"));
-
-            if (uploadedFile != null && uploadedFile.getSize() > 0) {
-                processFile(uploadedFile);
-                // Reset après traitement
-                uploadedFile = null;
-            } else {
-                addErrorMessage("Aucun fichier sélectionné ou fichier vide");
-            }
-
-        } catch (Exception e) {
-            System.err.println("ERREUR processUpload (Manuel): " + e.getMessage());
-            e.printStackTrace();
-            addErrorMessage("Erreur upload manuel: " + e.getMessage());
-        }
-
-        System.out.println("=== FIN processUpload (Manuel) ===");
     }
 
     /**
@@ -189,7 +166,7 @@ public class DriveDAO implements Serializable {
 
         // Validation extension simple
         String fileName = file.getFileName().toLowerCase();
-        String[] allowedExtensions = {".jpg", ".jpeg", ".png", ".gif", ".pdf", ".txt", ".zip", ".rar", ".docx", ".xlsx"};
+        String[] allowedExtensions = {".jpg", ".jpeg", ".png", ".gif", ".pdf", ".txt", ".zip", ".rar", ".docx", "doc", ".xlsx"};
 
         boolean validExtension = Arrays.stream(allowedExtensions)
                 .anyMatch(ext -> fileName.endsWith(ext));
@@ -397,7 +374,176 @@ public class DriveDAO implements Serializable {
         }
     }
 
+    /**
+     * Télécharge un fichier
+     * @param fileName Le nom du fichier à télécharger
+     */
+    public void downloadFile(String fileName) {
+        System.out.println("=== DÉBUT downloadFile ===");
+        System.out.println("Fichier demandé: " + fileName);
+
+        try {
+            validateCurrentPath();
+
+            if (fileName == null || fileName.trim().isEmpty()) {
+                addErrorMessage("Nom de fichier requis pour le téléchargement");
+                return;
+            }
+
+            Path filePath = Paths.get(currentPath, fileName);
+            System.out.println("Chemin complet: " + filePath);
+
+            // Vérifications de sécurité
+            if (!filePath.normalize().startsWith(Paths.get(BASE_PATH).normalize())) {
+                addErrorMessage("Accès non autorisé au fichier");
+                return;
+            }
+
+            if (!Files.exists(filePath)) {
+                addErrorMessage("Le fichier n'existe pas: " + fileName);
+                return;
+            }
+
+            if (!Files.isRegularFile(filePath)) {
+                addErrorMessage("L'élément n'est pas un fichier");
+                return;
+            }
+
+            // Obtenir le contexte JSF
+            FacesContext facesContext = FacesContext.getCurrentInstance();
+            ExternalContext externalContext = facesContext.getExternalContext();
+            HttpServletResponse response = (HttpServletResponse) externalContext.getResponse();
+
+            // Déterminer le type MIME
+            String mimeType = determineMimeType(fileName);
+            System.out.println("Type MIME détecté: " + mimeType);
+
+            // Configurer les headers de la réponse
+            response.setContentType(mimeType);
+            response.setContentLengthLong(Files.size(filePath));
+
+            // Encoder le nom de fichier pour éviter les problèmes avec les caractères spéciaux
+            String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString())
+                    .replaceAll("\\+", "%20");
+
+            response.setHeader("Content-Disposition",
+                    "attachment; filename=\"" + fileName + "\"; filename*=UTF-8''" + encodedFileName);
+
+            // Éviter la mise en cache
+            response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+            response.setHeader("Pragma", "no-cache");
+            response.setDateHeader("Expires", 0);
+
+            // Copier le fichier vers la réponse
+            try (InputStream inputStream = Files.newInputStream(filePath)) {
+                byte[] buffer = new byte[8192];
+                int bytesRead;
+                long totalBytes = 0;
+
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    response.getOutputStream().write(buffer, 0, bytesRead);
+                    totalBytes += bytesRead;
+                }
+
+                response.getOutputStream().flush();
+                System.out.println("Téléchargement terminé: " + totalBytes + " bytes envoyés");
+            }
+
+            // Marquer la réponse comme complète pour JSF
+            facesContext.responseComplete();
+
+            System.out.println("=== TÉLÉCHARGEMENT RÉUSSI ===");
+
+        } catch (Exception e) {
+            System.err.println("ERREUR downloadFile: " + e.getMessage());
+            e.printStackTrace();
+            addErrorMessage("Erreur lors du téléchargement: " + e.getMessage());
+            LOGGER.log(Level.SEVERE, "Erreur téléchargement fichier: " + fileName, e);
+        }
+    }
+
+
+
+    /**
+     * Méthode utilitaire pour formater la taille des fichiers
+     * @param fileName Le nom du fichier
+     * @return La taille formatée du fichier
+     */
+    public String getFileSize(String fileName) {
+        try {
+            validateCurrentPath();
+            Path filePath = Paths.get(currentPath, fileName);
+
+            if (Files.exists(filePath) && Files.isRegularFile(filePath)) {
+                long size = Files.size(filePath);
+                return formatFileSize(size);
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Erreur lecture taille fichier: " + fileName, e);
+        }
+        return "N/A";
+    }
+
+
+
     // ==================== UTILITAIRES ====================
+
+    /**
+     * Détermine le type MIME basé sur l'extension du fichier
+     * @param fileName Le nom du fichier
+     * @return Le type MIME correspondant
+     */
+    private String determineMimeType(String fileName) {
+        String lowerFileName = fileName.toLowerCase();
+
+        // Images
+        if (lowerFileName.endsWith(".jpg") || lowerFileName.endsWith(".jpeg")) {
+            return "image/jpeg";
+        } else if (lowerFileName.endsWith(".png")) {
+            return "image/png";
+        } else if (lowerFileName.endsWith(".gif")) {
+            return "image/gif";
+        }
+        // Documents
+        else if (lowerFileName.endsWith(".pdf")) {
+            return "application/pdf";
+        } else if (lowerFileName.endsWith(".txt")) {
+            return "text/plain";
+        } else if (lowerFileName.endsWith(".docx")) {
+            return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        } else if (lowerFileName.endsWith(".doc")) {
+            return "application/msword";
+        } else if (lowerFileName.endsWith(".xlsx")) {
+            return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        }
+        // Archives
+        else if (lowerFileName.endsWith(".zip")) {
+            return "application/zip";
+        } else if (lowerFileName.endsWith(".rar")) {
+            return "application/x-rar-compressed";
+        }
+        // Par défaut
+        else {
+            return "application/octet-stream";
+        }
+    }
+
+    /**
+     * Formate la taille d'un fichier en unités lisibles
+     * @param size La taille en bytes
+     * @return La taille formatée (ex: "1.5 MB")
+     */
+    private String formatFileSize(long size) {
+        if (size < 1024) {
+            return size + " B";
+        } else if (size < 1024 * 1024) {
+            return String.format("%.1f KB", size / 1024.0);
+        } else if (size < 1024 * 1024 * 1024) {
+            return String.format("%.1f MB", size / (1024.0 * 1024.0));
+        } else {
+            return String.format("%.1f GB", size / (1024.0 * 1024.0 * 1024.0));
+        }
+    }
 
     private void addErrorMessage(String message) {
         FacesContext.getCurrentInstance().addMessage(null,

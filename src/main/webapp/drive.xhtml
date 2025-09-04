@@ -20,9 +20,9 @@
             <h:form prependId="false" enctype="multipart/form-data" id="driveUploadForm">
 
                 <div class="drive__actions">
-                    <button class="btn btn--primary btn--block" id="btn-new-file">
+                    <div class="btn btn--primary btn--block" id="btn-new-file" onclick="document.getElementById('uploadForm:fileUploader_input').click()">
                         ➕ Nouveau fichier
-                    </button>
+                    </div>
                     <div class="btn btn--ghost btn--block" id="btn-new-folder">
                         📁 Nouveau dossier
                     </div>
@@ -34,15 +34,16 @@
                                       mode="simple" skinSimple="true"
                                       auto="true"
                                       process="@this"
-                                      update="messages"
+                                      update="messages driveContainerForm driveUploadForm"
                                       listener="#{driveDAO.handleFileUpload}"
                                       widgetVar="uploader"
+                                      style="display: none"
                                       onupload="return pfValidateBeforeUpload(this);"  >
                             <!-- Validation intégrée PrimeFaces (côté client + serveur) -->
                             <p:validateFile
-                                    allowTypes="/(\.|\/)(jpg|jpeg|png|gif|pdf|txt|zip|rar|docx|xlsx)$/i"
+                                    allowTypes="/(\.|\/)(jpg|jpeg|png|gif|pdf|txt|zip|rar|docx|doc|xlsx)$/i"
                                     sizeLimit="10485760"
-                                    allowTypesMessage="Type non autorisé ! Utilisez : JPG, PNG, GIF, PDF, TXT, ZIP, RAR, DOCX, XLSX"
+                                    allowTypesMessage="Type non autorisé ! Utilisez : JPG, PNG, GIF, PDF, TXT, ZIP, RAR, DOCX, DOC, XLSX"
                                     sizeLimitMessage="Fichier trop volumineux ! Maximum : 10 Mo" />
                         </p:fileUpload>
                     </h:form>
@@ -51,7 +52,7 @@
                         // Validation JS optionnelle AVANT l’upload (annule si return false)
                         function pfValidateBeforeUpload(widget) {
                             var files = widget.files || [];
-                            var allowed = /\.(jpg|jpeg|png|gif|pdf|txt|zip|rar|docx|xlsx)$/i;
+                            var allowed = /\.(jpg|jpeg|png|gif|pdf|txt|zip|rar|docx|doc|xlsx)$/i;
                             var max = 10 * 1024 * 1024; // 10 Mo
 
                             for (var i = 0; i &lt; files.length; i++) {
@@ -171,9 +172,15 @@
                                 </div>
                                 <div class="file-card__body"></div>
                                 <div class="file-card__actions">
-                                    <button class="btn btn--outline btn--sm" type="button">⬇️ Télécharger</button>
+                                    <p:commandButton
+                                            styleClass="btn btn--outline btn--sm"
+                                            value="⬇️ Télécharger"
+                                            action="#{driveDAO.downloadFile(f)}"
+                                            ajax="false"
+                                            immediate="true"
+                                            title="Télécharger le fichier #{f}"/>
                                     <button class="btn btn--ghost btn--sm btnRenameAction"
-                                            onclick="openRenameModal('#{f}')" type="button">✏️ Renommer
+                                            onclick="openRenameModal(`#{f}`)" type="button">✏️ Renommer
                                     </button>
                                     <p:commandButton styleClass="btn btn--primary btn--sm" value="🗑 Supprimer"
                                                      action="#{driveDAO.delete(f)}"
@@ -195,17 +202,17 @@
                                     Téléversez des fichiers, ou créez un nouveau fichier/dossier.
                                     Vous pouvez aussi glisser-déposer des fichiers ici.
                                 </p>
-                                <div class="drive-empty__actions">
+<!--                                <div class="drive-empty__actions">-->
 
-                                    <div class="btn btn--ghost btn--block"
-                                         onclick="document.getElementById('hiddenFile').click();">
-                                        ⬆️ Téléverser
-                                    </div>
+<!--                                    <div class="btn btn&#45;&#45;ghost btn&#45;&#45;block"-->
+<!--                                         onclick="document.getElementById('hiddenFile').click();">-->
+<!--                                        ⬆️ Téléverser-->
+<!--                                    </div>-->
 
-                                    <div class="btn btn--ghost" id="btn-new-folder-empty">
-                                        📁 Nouveau dossier
-                                    </div>
-                                </div>
+<!--                                    <div class="btn btn&#45;&#45;ghost" id="btn-new-folder-empty">-->
+<!--                                        📁 Nouveau dossier-->
+<!--                                    </div>-->
+<!--                                </div>-->
                             </div>
                         </div>
                     </ui:fragment>
@@ -333,11 +340,14 @@
                     </div>
                 </div>
                 <div class="modal__footer">
-                    <button class="btn btn--ghost" data-close-modal="data-close-modal">Annuler</button>
+                    <button id="cancelRenameActionBtn" class="btn btn--ghost" data-close-modal="data-close-modal">Annuler</button>
 
                     <p:commandButton styleClass="btn btn--primary" value="Valider" action="#{driveDAO.rename}"
                                      update="messages filesTable breadcrumbForm driveContainerForm"
-                                     data-close-modal="data-close-modal"/>
+                                     oncomplete="document.getElementById('cancelRenameActionBtn').click()">
+
+                        <f:passThroughAttribute name="data-close-modal" value="data-close-modal"/>
+                    </p:commandButton>
 
                 </div>
             </div>
