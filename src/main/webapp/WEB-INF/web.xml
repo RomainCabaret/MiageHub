@@ -9,16 +9,15 @@
         <welcome-file>index.xhtml</welcome-file>
     </welcome-file-list>
 
-
-    <!-- 🔹 Paramètres JSF pour optimiser les uploads -->
+    <!-- Paramètres JSF optimiser les uploads -->
     <context-param>
         <param-name>jakarta.faces.STATE_SAVING_METHOD</param-name>
         <param-value>server</param-value>
     </context-param>
 
-    <!-- Timeout de session étendu pour les gros uploads -->
     <session-config>
-        <session-timeout>60</session-timeout> <!-- 60 minutes -->
+        <!-- Timeout en minutes : 60 min * 24 h * 30 jours = 43200 minutes -->
+        <session-timeout>43200</session-timeout>
     </session-config>
     <context-param>
         <param-name>jakarta.faces.PROJECT_STAGE</param-name>
@@ -60,7 +59,7 @@
         <param-value>true</param-value>
     </context-param>
 
-    <!-- 🔹 Configuration PrimeFaces (si utilisé) -->
+    <!-- Configuration PrimeFaces -->
     <context-param>
         <param-name>primefaces.UPLOADER</param-name>
         <param-value>native</param-value>
@@ -72,7 +71,7 @@
         <param-value>10737418240</param-value> <!-- 10 Go -->
     </context-param>
 
-    <!-- 🔹 Pages d'erreur personnalisées -->
+    <!-- Pages d'erreur personnalisées -->
 <!--    <error-page>-->
 <!--        <error-code>413</error-code> &lt;!&ndash; Request Entity Too Large &ndash;&gt;-->
 <!--        <location>file-too-large.xhtml</location>-->

@@ -1,0 +1,336 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #0f1419 0%, #1a202c 35%, #2d3748 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Subtle animated background */
+.background-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+            radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+    animation: bgShift 10s ease-in-out infinite alternate;
+    z-index: -1;
+}
+
+@keyframes bgShift {
+    0% { transform: scale(1) rotate(0deg); }
+    100% { transform: scale(1.1) rotate(1deg); }
+}
+
+/* Floating subtle elements */
+.floating-elements {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
+
+.floating-element {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: rgba(59, 130, 246, 0.3);
+    border-radius: 50%;
+    animation: floatUp 8s linear infinite;
+}
+
+@keyframes floatUp {
+    0% {
+        transform: translateY(100vh) scale(0);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-10vh) scale(1);
+        opacity: 0;
+    }
+}
+
+/* Main container - Simple and elegant */
+.login-container {
+    background: rgba(15, 20, 25, 0.95);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 20px;
+    padding: 3rem;
+    width: 420px;
+    max-width: 90vw;
+    box-shadow:
+            0 25px 50px rgba(0, 0, 0, 0.5),
+            0 0 0 1px rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    position: relative;
+}
+
+.login-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 20px;
+    padding: 1px;
+    background: linear-gradient(135deg,
+    rgba(59, 130, 246, 0.3) 0%,
+    transparent 25%,
+    transparent 75%,
+    rgba(16, 185, 129, 0.3) 100%);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    z-index: -1;
+}
+
+/* Logo section */
+.logo-section {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.university-logo {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 1.5rem;
+    background: linear-gradient(135deg, #3b82f6, #10b981);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: white;
+    font-weight: 700;
+    font-family: 'Orbitron', monospace;
+    box-shadow:
+            0 10px 30px rgba(59, 130, 246, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.university-logo::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: logoShine 3s ease-in-out infinite;
+}
+
+@keyframes logoShine {
+    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+    100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+}
+
+/* Typography */
+.title {
+    font-family: 'Orbitron', monospace;
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #3b82f6, #10b981);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+    margin-bottom: 0.5rem;
+    letter-spacing: 2px;
+}
+
+.subtitle {
+    color: rgba(148, 163, 184, 0.8);
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+
+/* Form styling */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    color: #e2e8f0;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.5px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    background: rgba(30, 41, 59, 0.5);
+    border: 1.5px solid rgba(71, 85, 105, 0.3);
+    border-radius: 12px;
+    color: #e2e8f0;
+    font-size: 1rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+}
+
+.form-input:focus {
+    border-color: #3b82f6;
+    background: rgba(30, 41, 59, 0.7);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    transform: translateY(-1px);
+}
+
+.form-input::placeholder {
+    color: rgba(148, 163, 184, 0.5);
+}
+
+/* Messages styling */
+.messages {
+    margin-bottom: 1.5rem;
+    padding: 0.75rem 1rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 8px;
+    color: #fca5a5;
+    font-size: 0.9rem;
+    display: none;
+}
+
+.messages.show {
+    display: block;
+}
+
+/* Button styling - Much cleaner */
+.submit-btn {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.submit-btn:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+}
+
+.submit-btn:active {
+    transform: translateY(0px);
+    box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+}
+
+.submit-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* Security footer */
+.security-footer {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(71, 85, 105, 0.3);
+}
+
+.security-text {
+    color: rgba(148, 163, 184, 0.6);
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.security-icon {
+    width: 12px;
+    height: 12px;
+    background: #10b981;
+    border-radius: 50%;
+    animation: securityPulse 2s ease-in-out infinite;
+}
+
+@keyframes securityPulse {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+    .login-container {
+        padding: 2rem;
+        width: 95vw;
+    }
+
+    .title {
+        font-size: 2rem;
+        letter-spacing: 1px;
+    }
+
+    .university-logo {
+        width: 80px;
+        height: 80px;
+        font-size: 1.5rem;
+    }
+}
+
+/* Loading state */
+.submit-btn.loading {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 50%, #374151 100%);
+    cursor: not-allowed;
+    transform: scale(0.98);
+}
+
+.submit-btn.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 22px;
+    height: 22px;
+    margin: -11px 0 0 -11px;
+    border: 2.5px solid transparent;
+    border-top: 2.5px solid white;
+    border-radius: 50%;
+    animation: buttonSpin 1s linear infinite;
+}
+
+@keyframes buttonSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
