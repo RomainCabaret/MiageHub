@@ -1,28 +1,52 @@
 package com.GlassFishJSF;
 
-
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import java.io.IOException;
 
-@WebFilter(filterName = "AuthFilter", urlPatterns = {"/admin.xhtml", "/drive.xhtml"})
+import java.io.IOException;
+import java.util.Set;
+
+@WebFilter(filterName = "AuthFilter", urlPatterns = {
+        "/admin.xhtml", "/admin",
+        "/drive.xhtml", "/drive"
+})
 public class AuthFilter implements Filter {
+
+    // Pages protégées (anciennes ET nouvelles URLs)
+    private static final Set<String> PROTECTED_PATHS = Set.of(
+            "/admin.xhtml", "/admin",
+            "/drive.xhtml", "/drive"
+    );
+
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
 
         HttpServletRequest req = (HttpServletRequest) request;
-        HttpSession session = req.getSession(false); // Ne crée PAS de session
+        String requestURI = req.getRequestURI();
+        String contextPath = req.getContextPath();
+        String path = requestURI.substring(contextPath.length());
 
-        boolean isLoggedIn = session != null && session.getAttribute("user") != null;
+        // Debug
+        System.out.println("🔒 AuthFilter - Path: " + path);
 
-        if (!isLoggedIn) {
-            ((HttpServletResponse) response).sendRedirect(req.getContextPath() + "/login.xhtml");
-        } else {
-            chain.doFilter(request, response); // Autoriser l'accès
+        // Vérifier si c'est une page protégée
+        if (PROTECTED_PATHS.contains(path)) {
+            HttpSession session = req.getSession(false);
+            boolean isLoggedIn = session != null && session.getAttribute("user") != null;
+
+            if (!isLoggedIn) {
+                System.out.println("🔒 Accès refusé pour: " + path);
+                ((HttpServletResponse) response).sendRedirect(req.getContextPath() + "/login");
+                return;
+            } else {
+                System.out.println("🔒 Accès autorisé pour: " + path);
+            }
         }
+
+        chain.doFilter(request, response);
     }
 }

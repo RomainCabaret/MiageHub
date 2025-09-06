@@ -536,6 +536,32 @@ body {
     .schedule__controls {
         justify-content: space-between;
     }
+    .schedule__nav{
+        margin: 0px auto;
+    }
+}
+
+@media (max-width: 600px) {
+    .schedule__nav{
+        justify-content: center;
+        gap: 2px;
+        width: 100%;
+    }
+    .schedule__nav-btn{
+        width: 50px;
+        height: 50px;
+    }
+    .schedule__week{
+        width: 100%;
+    }
+
+    #navigationForm{
+        width: 100%;
+    }
+    .schedule{
+        padding: 0px;
+    }
+
 }
 
 /* Impression (optionnel) */
@@ -583,6 +609,34 @@ body {
 .course-popup h3 {
     margin-top: 0;
 }
+
+.schedule__no-events {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    text-align: center;
+    color: #6b7280;
+    background-color: #f3f4f6;
+    border-radius: 8px;
+    margin-top: 0.5rem;
+}
+
+.no-events-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.no-events-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.no-events-text {
+    font-size: 0.9rem;
+}
+
 
 .event-bdd-avancees {
     background-color: #1565c0;

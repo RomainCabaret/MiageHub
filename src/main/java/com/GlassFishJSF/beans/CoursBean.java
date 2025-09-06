@@ -100,13 +100,22 @@ public class CoursBean implements Serializable {
         LocalDate lundi = semaineCourante;
         LocalDate vendredi = lundi.plusDays(4);
 
-        return allCours.stream()
+        // Déduplication par id avant tri et groupement
+        Map<Long, Cours> uniqueCours = allCours.stream()
                 .filter(c -> {
                     LocalDate dateCours = c.getDate().toInstant()
                             .atZone(ZoneId.systemDefault())
                             .toLocalDate();
                     return !dateCours.isBefore(lundi) && !dateCours.isAfter(vendredi);
                 })
+                .collect(Collectors.toMap(
+                        Cours::getId,      // clé unique = id
+                        c -> c,
+                        (existing, replacement) -> existing // en cas de doublon, garder le premier
+                ));
+
+        // Tri et regroupement
+        return uniqueCours.values().stream()
                 .sorted(Comparator.comparing(Cours::getDate).thenComparing(Cours::getTimestampDebut))
                 .collect(Collectors.groupingBy(
                         c -> c.getDate().toInstant().atZone(ZoneId.systemDefault()).getDayOfWeek(),
@@ -114,6 +123,7 @@ public class CoursBean implements Serializable {
                         Collectors.toList()
                 ));
     }
+
 
     /** Liste plate pour la version desktop */
     public List<Cours> getCoursSemaine() {

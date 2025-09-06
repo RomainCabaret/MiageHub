@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:h="http://xmlns.jcp.org/jsf/html">
+<h:head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title><ui:insert name="title">Mon Application</ui:insert></title>
+
+    <!-- HEADER LINK & CDN -->
+    <ui:insert name="head-resources"/>
+</h:head>
+
+<h:body>
+    <div class="app-container">
+        <main>
+            <ui:insert name="content"/>
+        </main>
+    </div>
+</h:body>
+</html>

@@ -1,515 +1,447 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://xmlns.jcp.org/jsf/html"
       xmlns:ui="jakarta.faces.facelets"
-      xmlns:p="http://primefaces.org/ui" xmlns:f="http://java.sun.com/jsf/core">
-<h:head>
-    <title>Emploi du temps</title>
-    <h:outputStylesheet library="css" name="cours.css"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css"/>
+      xmlns:p="http://primefaces.org/ui" xmlns:f="http://java.sun.com/jsf/core"
+                template="template.xhtml">
 
-    <script>
-        function showCourseDetails(title, time, room, content) {
-            const popup = document.getElementById("course-popup");
-            document.getElementById("popup-title").textContent = title;
-            document.getElementById("popup-time").textContent = time;
-            document.getElementById("popup-room").textContent = room;
-            document.getElementById("popup-content").textContent =
-                content || "Aucune description";
 
-            popup.classList.remove("hidden");
-        }
+    <ui:define name="title">Accueil - Planning</ui:define>
 
-        // Cacher au clic à l'extérieur
-        document.addEventListener("click", function (e) {
-            console.log(e.target);
+    <ui:define name="head-resources">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css"/>
+        <h:outputStylesheet library="css" name="cours.css"/>
+        <script>
+            function showCourseDetails(title, time, room, content) {
+                const popup = document.getElementById("course-popup");
+                document.getElementById("popup-title").textContent = title;
+                document.getElementById("popup-time").textContent = time;
+                document.getElementById("popup-room").textContent = room;
+                document.getElementById("popup-content").textContent =
+                    content || "Aucune description";
 
-            if (e.target.className.includes("COURSE__POPUP__ENABLED")) {
-                console.log(e.target.className.includes("COURSE__POPUP__ENABLED"));
-                return;
+                popup.classList.remove("hidden");
             }
 
-            document.getElementById("course-popup").classList.add("hidden");
-        });
-    </script>
-    <style>
-        .week-picker-container {
-            margin: 20px;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
+            // Cacher au clic à l'extérieur
+            document.addEventListener("click", function (e) {
+                console.log(e.target);
 
-        .week-picker-input {
-            width: 300px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 14px;
-        }
+                if (e.target.className.includes("COURSE__POPUP__ENABLED")) {
+                    console.log(e.target.className.includes("COURSE__POPUP__ENABLED"));
+                    return;
+                }
 
-        .week-info {
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #f9f9f9;
-            border-radius: 4px;
-        }
+                document.getElementById("course-popup").classList.add("hidden");
+            });
+        </script>
+        <style>
+            .week-picker-container {
+                margin: 20px;
+                padding: 20px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+            }
 
-        /* Styles pour la sélection de semaine */
-        .flatpickr-day.selected,
-        .flatpickr-day.startRange,
-        .flatpickr-day.endRange,
-        .flatpickr-day.inRange {
-            background: #007bff !important;
-            border-color: #007bff !important;
-            color: white !important;
-        }
+            .week-picker-input {
+                width: 300px;
+                padding: 10px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 14px;
+            }
 
-        .flatpickr-day.inRange {
-            opacity: 0.7;
-        }
+            .week-info {
+                margin-top: 10px;
+                padding: 10px;
+                background-color: #f9f9f9;
+                border-radius: 4px;
+            }
 
-        .primefaces-integration {
-            margin-top: 30px;
-            padding: 20px;
-            border: 1px solid #007bff;
-            border-radius: 5px;
-            background-color: #f0f8ff;
-        }
+            /* Styles pour la sélection de semaine */
+            .flatpickr-day.selected,
+            .flatpickr-day.startRange,
+            .flatpickr-day.endRange,
+            .flatpickr-day.inRange {
+                background: #007bff !important;
+                border-color: #007bff !important;
+                color: white !important;
+            }
 
-        .flatpickr-input[readonly] {
-            cursor: pointer;
-            width: 0px;
-            height: 0px;
-            margin-left: auto;
-            position: relative;
-            top: 60px;
-            border: none;
-        }
-    </style>
-    <script type="text/javascript">
-        // Récupération de la semaine courante depuis le bean JSF
-        var currentWeekStart = '#{coursBean.semaineCourante}';
-        console.log('📅 Semaine courante JSF:', currentWeekStart);
-    </script>
-</h:head>
-<h:body>
-    <main class="schedule" aria-labelledby="schedule-title">
-        <header class="schedule__header">
-            <h1 id="schedule-title" class="schedule__title">
-                Emploi du temps — Semaine
-            </h1>
+            .flatpickr-day.inRange {
+                opacity: 0.7;
+            }
 
+            .primefaces-integration {
+                margin-top: 30px;
+                padding: 20px;
+                border: 1px solid #007bff;
+                border-radius: 5px;
+                background-color: #f0f8ff;
+            }
 
-            <div>
-                <input type="hidden" id="weekPicker"/>
-                <div class="schedule__controls">
-                    <div class="schedule__nav" role="group" aria-label="Navigation des semaines">
-                        <h:form>
-                            <h:commandButton value="‹" action="#{coursBean.semainePrecedente}"
-                                             styleClass="schedule__nav-btn schedule__nav-btn--prev"
-                                             title="Semaine précédente"/>
+            .flatpickr-input[readonly] {
+                cursor: pointer;
+                width: 0px;
+                height: 0px;
+                margin-left: auto;
+                position: relative;
+                top: 60px;
+                border: none;
+            }
+        </style>
+        <script type="text/javascript">
+            // Récupération de la semaine courante depuis le bean JSF
+            var currentWeekStart = '#{coursBean.semaineCourante}';
+            console.log('📅 Semaine courante JSF:', currentWeekStart);
+        </script>
+    </ui:define>
 
-                        </h:form>
-
-                        <h:form id="navigationForm">
-
-                            <button type="button" id="weekPickerBtn" class="schedule__week">
-                                📅 #{coursBean.periodeSemaine}
-                            </button>
-
-                            <!-- Champs cachés pour le week picker -->
-                            <h:inputHidden id="selectedWeekStart" value="#{coursBean.weekPickerStart}"/>
-                            <h:inputHidden id="selectedWeekEnd" value="#{coursBean.weekPickerEnd}"/>
-
-                            <!-- Bouton caché pour déclencher l'action JSF -->
-                            <h:commandButton id="applyWeekSelection"
-                                             action="#{coursBean.appliquerSelectionSemaine}"
-                                             style="display: none;"
-                                             update="navigationForm coursContainer"
-                                             onclick="setTimeout(updatePickerFromJSF, 200);"/>
+    <ui:define name="content">
+        <main class="schedule" aria-labelledby="schedule-title">
+            <header class="schedule__header">
+                <h1 id="schedule-title" class="schedule__title">
+                    Emploi du temps — Semaine
+                </h1>
 
 
-                            <h:inputHidden id="currentWeekMonday" value="#{coursBean.semaineCourante}">
-                                <f:converter converterId="localDateConverter"/>
-                            </h:inputHidden>
+                <div>
+                    <input type="hidden" id="weekPicker"/>
+                    <div class="schedule__controls">
+                        <div class="schedule__nav" role="group" aria-label="Navigation des semaines">
+                            <h:form>
+                                <h:commandButton value="‹" action="#{coursBean.semainePrecedente}"
+                                                 styleClass="schedule__nav-btn schedule__nav-btn--prev"
+                                                 title="Semaine précédente"/>
 
-                        </h:form>
-                        <h:form>
-                            <h:commandButton value="›" action="#{coursBean.semaineSuivante}"
-                                             styleClass="schedule__nav-btn schedule__nav-btn--next"
-                                             title="Semaine suivante"/>
-                        </h:form>
+                            </h:form>
+
+                            <h:form id="navigationForm">
+
+                                <button type="button" id="weekPickerBtn" class="schedule__week">
+                                    📅 #{coursBean.periodeSemaine}
+                                </button>
+
+                                <!-- Champs cachés pour le week picker -->
+                                <h:inputHidden id="selectedWeekStart" value="#{coursBean.weekPickerStart}"/>
+                                <h:inputHidden id="selectedWeekEnd" value="#{coursBean.weekPickerEnd}"/>
+
+                                <!-- Bouton caché pour déclencher l'action JSF -->
+                                <h:commandButton id="applyWeekSelection"
+                                                 action="#{coursBean.appliquerSelectionSemaine}"
+                                                 style="display: none;"
+                                                 update="navigationForm coursContainer"
+                                                 onclick="setTimeout(updatePickerFromJSF, 200);"/>
+
+
+                                <h:inputHidden id="currentWeekMonday" value="#{coursBean.semaineCourante}">
+                                    <f:converter converterId="localDateConverter"/>
+                                </h:inputHidden>
+
+                            </h:form>
+                            <h:form>
+                                <h:commandButton value="›" action="#{coursBean.semaineSuivante}"
+                                                 styleClass="schedule__nav-btn schedule__nav-btn--next"
+                                                 title="Semaine suivante"/>
+                            </h:form>
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <!--            <ul class="schedule__legend" aria-label="Légende des matières">-->
+                <!--                <li class="schedule__legend-item schedule__legend-item&#45;&#45;cs">-->
+                <!--                    Informatique-->
+                <!--                </li>-->
+                <!--                <li class="schedule__legend-item schedule__legend-item&#45;&#45;math">-->
+                <!--                    Mathématiques-->
+                <!--                </li>-->
+                <!--                <li class="schedule__legend-item schedule__legend-item&#45;&#45;lab">-->
+                <!--                    TP / Projet-->
+                <!--                </li>-->
+                <!--                <li class="schedule__legend-item schedule__legend-item&#45;&#45;exam">-->
+                <!--                    Examen-->
+                <!--                </li>-->
+                <!--                <li class="schedule__legend-item schedule__legend-item&#45;&#45;break">-->
+                <!--                    Pause-->
+                <!--                </li>-->
+                <!--            </ul>-->
+            </header>
+
+            <!-- ===== Version bureau/tablette (grille) ===== -->
+            <div class="schedule__desktop" aria-hidden="false">
+                <div class="schedule__days" role="rowgroup">
+                    <div class="schedule__corner" aria-hidden="true"></div>
+                    <div
+                            class="schedule__day-name"
+                            role="columnheader"
+                            aria-label="Lundi"
+                    >
+                        Lundi
+                    </div>
+                    <div
+                            class="schedule__day-name"
+                            role="columnheader"
+                            aria-label="Mardi"
+                    >
+                        Mardi
+                    </div>
+                    <div
+                            class="schedule__day-name"
+                            role="columnheader"
+                            aria-label="Mercredi"
+                    >
+                        Mercredi
+                    </div>
+                    <div
+                            class="schedule__day-name"
+                            role="columnheader"
+                            aria-label="Jeudi"
+                    >
+                        Jeudi
+                    </div>
+                    <div
+                            class="schedule__day-name"
+                            role="columnheader"
+                            aria-label="Vendredi"
+                    >
+                        Vendredi
+                    </div>
+                </div>
+
+                <section
+                        class="schedule__grid"
+                        aria-label="Emploi du temps hebdomadaire de 08:00 à 18:00, pas de 30 minutes"
+                >
+                    <!-- Libellés d'heures -->
+                    <div class="schedule__time" style="grid-column: 1; grid-row: 1">
+                        08:00
+                    </div>
+                    <div class="schedule__time" style="grid-column: 1; grid-row: 3">
+                        09:00
+                    </div>
+                    <div class="schedule__time" style="grid-column: 1; grid-row: 5">
+                        10:00
+                    </div>
+                    <div class="schedule__time" style="grid-column: 1; grid-row: 7">
+                        11:00
+                    </div>
+                    <div class="schedule__time" style="grid-column: 1; grid-row: 9">
+                        12:00
+                    </div>
+                    <div class="schedule__time" style="grid-column: 1; grid-row: 11">
+                        13:00
+                    </div>
+                    <div class="schedule__time" style="grid-column: 1; grid-row: 13">
+                        14:00
+                    </div>
+                    <div class="schedule__time" style="grid-column: 1; grid-row: 15">
+                        15:00
+                    </div>
+                    <div class="schedule__time" style="grid-column: 1; grid-row: 17">
+                        16:00
+                    </div>
+                    <div class="schedule__time" style="grid-column: 1; grid-row: 19">
+                        17:00
+                    </div>
+                    <div class="schedule__time" style="grid-column: 1; grid-row: 21">
+                        18:00
                     </div>
 
-                </div>
-            </div>
-
-
-            <!--            <ul class="schedule__legend" aria-label="Légende des matières">-->
-            <!--                <li class="schedule__legend-item schedule__legend-item&#45;&#45;cs">-->
-            <!--                    Informatique-->
-            <!--                </li>-->
-            <!--                <li class="schedule__legend-item schedule__legend-item&#45;&#45;math">-->
-            <!--                    Mathématiques-->
-            <!--                </li>-->
-            <!--                <li class="schedule__legend-item schedule__legend-item&#45;&#45;lab">-->
-            <!--                    TP / Projet-->
-            <!--                </li>-->
-            <!--                <li class="schedule__legend-item schedule__legend-item&#45;&#45;exam">-->
-            <!--                    Examen-->
-            <!--                </li>-->
-            <!--                <li class="schedule__legend-item schedule__legend-item&#45;&#45;break">-->
-            <!--                    Pause-->
-            <!--                </li>-->
-            <!--            </ul>-->
-        </header>
-
-        <!-- ===== Version bureau/tablette (grille) ===== -->
-        <div class="schedule__desktop" aria-hidden="false">
-            <div class="schedule__days" role="rowgroup">
-                <div class="schedule__corner" aria-hidden="true"></div>
-                <div
-                        class="schedule__day-name"
-                        role="columnheader"
-                        aria-label="Lundi"
-                >
-                    Lundi
-                </div>
-                <div
-                        class="schedule__day-name"
-                        role="columnheader"
-                        aria-label="Mardi"
-                >
-                    Mardi
-                </div>
-                <div
-                        class="schedule__day-name"
-                        role="columnheader"
-                        aria-label="Mercredi"
-                >
-                    Mercredi
-                </div>
-                <div
-                        class="schedule__day-name"
-                        role="columnheader"
-                        aria-label="Jeudi"
-                >
-                    Jeudi
-                </div>
-                <div
-                        class="schedule__day-name"
-                        role="columnheader"
-                        aria-label="Vendredi"
-                >
-                    Vendredi
-                </div>
-            </div>
-
-            <section
-                    class="schedule__grid"
-                    aria-label="Emploi du temps hebdomadaire de 08:00 à 18:00, pas de 30 minutes"
-            >
-                <!-- Libellés d'heures -->
-                <div class="schedule__time" style="grid-column: 1; grid-row: 1">
-                    08:00
-                </div>
-                <div class="schedule__time" style="grid-column: 1; grid-row: 3">
-                    09:00
-                </div>
-                <div class="schedule__time" style="grid-column: 1; grid-row: 5">
-                    10:00
-                </div>
-                <div class="schedule__time" style="grid-column: 1; grid-row: 7">
-                    11:00
-                </div>
-                <div class="schedule__time" style="grid-column: 1; grid-row: 9">
-                    12:00
-                </div>
-                <div class="schedule__time" style="grid-column: 1; grid-row: 11">
-                    13:00
-                </div>
-                <div class="schedule__time" style="grid-column: 1; grid-row: 13">
-                    14:00
-                </div>
-                <div class="schedule__time" style="grid-column: 1; grid-row: 15">
-                    15:00
-                </div>
-                <div class="schedule__time" style="grid-column: 1; grid-row: 17">
-                    16:00
-                </div>
-                <div class="schedule__time" style="grid-column: 1; grid-row: 19">
-                    17:00
-                </div>
-                <div class="schedule__time" style="grid-column: 1; grid-row: 21">
-                    18:00
-                </div>
-
-                <!-- Cours dynamiques -->
-                <ui:repeat value="#{coursBean.coursParJour.values().stream().flatMap(l -> l.stream()).toList()}"
-                           var="c">
-                    <article
-                            class="schedule__event COURSE__POPUP__ENABLED  #{coursBean.getCssClassForCours(c.matiere, c.typeCours)} "
-                            style="grid-column: #{coursBean.gridColumn(c.date)};
+                    <!-- Cours dynamiques -->
+                    <ui:repeat value="#{coursBean.coursParJour.values().stream().flatMap(l -> l.stream()).toList()}"
+                               var="c">
+                        <article
+                                class="schedule__event COURSE__POPUP__ENABLED  #{coursBean.getCssClassForCours(c.matiere, c.typeCours)} "
+                                style="grid-column: #{coursBean.gridColumn(c.date)};
        grid-row: #{coursBean.gridRow(c.timestampDebut)} / span #{coursBean.rowSpan(c.timestampDebut, c.timestampFin)}"
-                            onclick="showCourseDetails(`#{c.matiere}`, `#{c.timestampDebut.toLocalDateTime().toLocalTime()}–#{c.timestampFin.toLocalDateTime().toLocalTime()}`, `#{c.salle}`, `#{c.content}`)">
-                        <h3 class="schedule__event-title COURSE__POPUP__ENABLED">#{c.matiere}</h3>
-                        <p class="schedule__event-meta COURSE__POPUP__ENABLED">
-                            #{c.timestampDebut.toLocalDateTime().toLocalTime()}–#{c.timestampFin.toLocalDateTime().toLocalTime()} · Salle #{c.salle}
-                        </p>
-                        <ui:fragment rendered="#{not empty c.typeCours and c.typeCours ne 'PRESENCE UNIVERSITAIRE'}">
-                            <p class="schedule__event-meta COURSE__POPUP__ENABLED">#{c.typeCours}</p>
-                        </ui:fragment>
+                                onclick="showCourseDetails(`#{c.matiere}`, `#{c.timestampDebut.toLocalDateTime().toLocalTime()}–#{c.timestampFin.toLocalDateTime().toLocalTime()}`, `#{c.salle}`, `#{c.content}`)">
+                            <h3 class="schedule__event-title COURSE__POPUP__ENABLED">#{c.matiere}</h3>
+                            <p class="schedule__event-meta COURSE__POPUP__ENABLED">
+                                #{c.timestampDebut.toLocalDateTime().toLocalTime()}–#{c.timestampFin.toLocalDateTime().toLocalTime()} · Salle #{c.salle}
+                            </p>
+                            <ui:fragment rendered="#{not empty c.typeCours and c.typeCours ne 'PRESENCE UNIVERSITAIRE'}">
+                                <p class="schedule__event-meta COURSE__POPUP__ENABLED">#{c.typeCours}</p>
+                            </ui:fragment>
 
-                        <!--                        <ui:fragment rendered="#{not empty c.groupe and c.groupe ne 'PRESENCE UNIVERSITAIRE'}">-->
-                        <!--                            <p class="schedule__event-meta">#{c.groupe}</p>-->
-                        <!--                        </ui:fragment>-->
-                        <!--                        <p class="schedule__event-meta">#{c.content}</p>-->
+                            <!--                        <ui:fragment rendered="#{not empty c.groupe and c.groupe ne 'PRESENCE UNIVERSITAIRE'}">-->
+                            <!--                            <p class="schedule__event-meta">#{c.groupe}</p>-->
+                            <!--                        </ui:fragment>-->
+                            <!--                        <p class="schedule__event-meta">#{c.content}</p>-->
 
-                    </article>
+                        </article>
+                    </ui:repeat>
+                </section>
+
+                <!--            <p class="schedule__hint">-->
+                <!--                Astuce: adaptez les positions en modifiant grid-column (jour: 2 =-->
+                <!--                Lundi ... 6 = Vendredi) et grid-row (08:00 = 1, +1 par 30 min).-->
+                <!--                grid-row: X / span Y, où Y = durée en pas de 30 min.-->
+                <!--            </p>-->
+            </div>
+
+            <!-- ===== Variante mobile (accordéon) ===== -->
+            <section class="schedule-accordion schedule__mobile"
+                     aria-label="Emploi du temps — Vue mobile par jour">
+
+                <!-- Message quand il n'y a rien -->
+                <h:panelGroup rendered="#{coursBean.coursParJour.isEmpty()}">
+                    <div style="text-align:center; padding:2rem; color:#888; font-size:1.2rem;">
+                        <h3 style="font-weight:normal;">Aucun cours cette semaine.</h3>
+                        <p style="margin-top:0.5rem;">¯\_(ツ)_/¯</p>
+                    </div>
+                </h:panelGroup>
+
+                <!-- Affichage normal des cours -->
+                <ui:repeat value="#{coursBean.coursParJour.entrySet()}" var="entry" varStatus="status" rendered="#{not coursBean.coursParJour.isEmpty()}">
+
+                    <!-- PREMIER JOUR (Lundi) avec open -->
+                    <h:panelGroup rendered="#{status.first}">
+                        <details class="schedule-accordion__item" open="open">
+                            <summary class="schedule-accordion__summary">
+                    <span class="schedule-accordion__day">
+                        #{coursBean.getJourFrancais(entry.key)}
+                    </span>
+                                <span class="schedule-accordion__meta">
+                        #{entry.value.size()} événements
+                    </span>
+                            </summary>
+                            <div class="schedule-accordion__panel">
+                                <ui:repeat value="#{entry.value}" var="c">
+                                    <article class="schedule__event #{coursBean.getCssClassForCours(c.matiere, c.typeCours)}">
+                                        <h3 class="schedule__event-title">#{c.matiere}</h3>
+                                        <p class="schedule__event-meta">
+                                            #{c.timestampDebut.toLocalDateTime().toLocalTime()} – #{c.timestampFin.toLocalDateTime().toLocalTime()}
+                                            · Salle #{c.salle}
+                                        </p>
+                                        <p class="schedule__event-meta">#{c.content}</p>
+                                    </article>
+                                </ui:repeat>
+                            </div>
+                        </details>
+                    </h:panelGroup>
+
+                    <!-- AUTRES JOURS -->
+                    <h:panelGroup rendered="#{not status.first}">
+                        <details class="schedule-accordion__item" open="open">
+                            <summary class="schedule-accordion__summary">
+                    <span class="schedule-accordion__day">
+                        #{coursBean.getJourFrancais(entry.key)}
+                    </span>
+                                <span class="schedule-accordion__meta">
+                        #{entry.value.size()} événements
+                    </span>
+                            </summary>
+                            <div class="schedule-accordion__panel">
+                                <ui:repeat value="#{entry.value}" var="c">
+                                    <article class="schedule__event #{coursBean.getCssClassForCours(c.matiere, c.typeCours)}">
+                                        <h3 class="schedule__event-title">#{c.matiere}</h3>
+                                        <p class="schedule__event-meta">
+                                            #{c.timestampDebut.toLocalDateTime().toLocalTime()} – #{c.timestampFin.toLocalDateTime().toLocalTime()}
+                                            · Salle #{c.salle}
+                                        </p>
+                                        <p class="schedule__event-meta">#{c.content}</p>
+                                    </article>
+                                </ui:repeat>
+                            </div>
+                        </details>
+                    </h:panelGroup>
+
                 </ui:repeat>
+
             </section>
 
-            <!--            <p class="schedule__hint">-->
-            <!--                Astuce: adaptez les positions en modifiant grid-column (jour: 2 =-->
-            <!--                Lundi ... 6 = Vendredi) et grid-row (08:00 = 1, +1 par 30 min).-->
-            <!--                grid-row: X / span Y, où Y = durée en pas de 30 min.-->
-            <!--            </p>-->
-        </div>
+            <!-- Pop-up latéral -->
+            <div id="course-popup" class="course-popup hidden" onclick="event.stopPropagation()">
+                <h3 id="popup-title"></h3>
+                <p id="popup-time"></p>
+                <p id="popup-room"></p>
+                <p id="popup-content"></p>
+            </div>
 
-        <!-- ===== Variante mobile (accordéon) ===== -->
-        <section class="schedule-accordion schedule__mobile"
-                 aria-label="Emploi du temps — Vue mobile par jour">
-
-            <ui:repeat value="#{coursBean.coursParJour.entrySet()}" var="entry" varStatus="status">
-
-                <!-- PREMIER JOUR (Lundi) avec open -->
-                <h:panelGroup rendered="#{status.first}">
-                    <details class="schedule-accordion__item" open="open">
-                        <summary class="schedule-accordion__summary">
-                    <span class="schedule-accordion__day">
-                        #{coursBean.getJourFrancais(entry.key)}
-                    </span>
-                            <span class="schedule-accordion__meta">
-                        #{entry.value.size()} événements
-                    </span>
-                        </summary>
-                        <div class="schedule-accordion__panel">
-                            <ui:repeat value="#{entry.value}" var="c">
-                                <article
-                                        class="schedule__event #{coursBean.getCssClassForCours(c.matiere, c.typeCours)}">
-                                    <h3 class="schedule__event-title">#{c.matiere}</h3>
-                                    <p class="schedule__event-meta">
-                                        #{c.timestampDebut.toLocalDateTime().toLocalTime()}
-                                        – #{c.timestampFin.toLocalDateTime().toLocalTime()}
-                                        · Salle #{c.salle}
-                                    </p>
-                                    <p class="schedule__event-meta">#{c.content}</p>
-                                </article>
-                            </ui:repeat>
-                        </div>
-                    </details>
-                </h:panelGroup>
-
-                <!-- AUTRES JOURS -->
-                <h:panelGroup rendered="#{not status.first}">
-                    <details class="schedule-accordion__item" open="open">
-                        <summary class="schedule-accordion__summary">
-                    <span class="schedule-accordion__day">
-                        #{coursBean.getJourFrancais(entry.key)}
-                    </span>
-                            <span class="schedule-accordion__meta">
-                        #{entry.value.size()} événements
-                    </span>
-                        </summary>
-                        <div class="schedule-accordion__panel">
-                            <ui:repeat value="#{entry.value}" var="c">
-                                <article
-                                        class="schedule__event #{coursBean.getCssClassForCours(c.matiere, c.typeCours)}">
-                                    <h3 class="schedule__event-title">#{c.matiere}</h3>
-                                    <p class="schedule__event-meta">
-                                        #{c.timestampDebut.toLocalDateTime().toLocalTime()}
-                                        – #{c.timestampFin.toLocalDateTime().toLocalTime()}
-                                        · Salle #{c.salle}
-                                    </p>
-                                    <p class="schedule__event-meta">#{c.content}</p>
-                                </article>
-                            </ui:repeat>
-                        </div>
-                    </details>
-                </h:panelGroup>
-
-            </ui:repeat>
-
-        </section>
-
-        <!-- Pop-up latéral -->
-        <div id="course-popup" class="course-popup hidden" onclick="event.stopPropagation()">
-            <h3 id="popup-title"></h3>
-            <p id="popup-time"></p>
-            <p id="popup-room"></p>
-            <p id="popup-content"></p>
-        </div>
-
-        <h:form>
-            <h:commandButton value="Driver" action="#{coursBean.redirectionIntoDriver}"/>
-        </h:form>
+            <h:form>
+                <h:commandButton value="Driver" action="#{coursBean.redirectionIntoDriver}"/>
+            </h:form>
 
 
-    </main>
-    <!-- Flatpickr JavaScript -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+        </main>
+        <!-- Flatpickr JavaScript -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
 
-    <!-- Config Week Picker -->
-    <script>
-        let flatpickrInstance = null;
+        <!-- Config Week Picker -->
+        <script>
+            let flatpickrInstance = null;
 
-        document.addEventListener('DOMContentLoaded', function () {
-            initializeWeekPicker();
-            // Synchroniser immédiatement avec la semaine courante
-            setTimeout(updatePickerFromJSF, 100);
-        });
+            document.addEventListener('DOMContentLoaded', function () {
+                initializeWeekPicker();
+                // Synchroniser immédiatement avec la semaine courante
+                setTimeout(updatePickerFromJSF, 100);
+            });
 
 
-        // Utilitaires pour les dates
-        function getMonday(date) {
-            const d = new Date(date);
-            const day = d.getDay();
-            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-            return new Date(d.setDate(diff));
-        }
-
-        function getSunday(date) {
-            const monday = getMonday(date);
-            return new Date(monday.getTime() + 6 * 24 * 60 * 60 * 1000);
-        }
-
-        function getWeekNumber(date) {
-            // Utiliser la même logique que Flatpickr (ISO 8601)
-            const target = new Date(date.valueOf());
-            const dayNumber = (date.getDay() + 6) % 7;
-            target.setDate(target.getDate() - dayNumber + 3);
-            const firstThursday = target.valueOf();
-            target.setMonth(0, 1);
-            if (target.getDay() !== 4) {
-                target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+            // Utilitaires pour les dates
+            function getMonday(date) {
+                const d = new Date(date);
+                const day = d.getDay();
+                const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+                return new Date(d.setDate(diff));
             }
-            return 1 + Math.ceil((firstThursday - target) / 604800000);
-        }
 
-        function updatePickerFromJSF() {
-            if (!flatpickrInstance) return;
+            function getSunday(date) {
+                const monday = getMonday(date);
+                return new Date(monday.getTime() + 6 * 24 * 60 * 60 * 1000);
+            }
 
-            const currentWeekField = document.getElementById('navigationForm:currentWeekMonday');
-            if (!currentWeekField || !currentWeekField.value) return;
-
-            const currentMonday = new Date(currentWeekField.value);
-            const currentSunday = new Date(currentMonday);
-            currentSunday.setDate(currentMonday.getDate() + 6);
-
-            console.log('🔄 Synchronisation picker avec:', currentMonday.toLocaleDateString('fr-FR'));
-
-            // Mettre à jour le picker sans déclencher l'événement onChange
-            flatpickrInstance.setDate([currentMonday, currentSunday], false);
-            updateButtonText(currentMonday, currentSunday);
-        }
-
-        function updateButtonText(monday, sunday) {
-            const weekNumber = getWeekNumber(monday);
-            const mondayStr = monday.toLocaleDateString('fr-FR', {
-                day: 'numeric',
-                month: 'short'
-            });
-            const sundayStr = sunday.toLocaleDateString('fr-FR', {
-                day: 'numeric',
-                month: 'short'
-            });
-
-            /*
-            document.getElementById('weekPickerBtn').textContent =
-                `📅 Semaine ${weekNumber} (${mondayStr} - ${sundayStr})`;
-                */
-
-        }
-
-        // Configuration Flatpickr
-
-
-        // Gestionnaire de clic sur le bouton
-        document.getElementById('weekPickerBtn').addEventListener('click', function (e) {
-            e.preventDefault();
-            // Synchroniser avant d'ouvrir
-            updatePickerFromJSF();
-            flatpickrInstance.open();
-        });
-
-        // Mise à jour des champs JSF et déclenchement de l'action
-        function updateJSFFields(monday, sunday) {
-            const weekStartField = document.getElementById('navigationForm:selectedWeekStart');
-            const weekEndField = document.getElementById('navigationForm:selectedWeekEnd');
-
-            if (weekStartField) weekStartField.value = monday.toISOString().split('T')[0];
-            if (weekEndField) weekEndField.value = sunday.toISOString().split('T')[0];
-
-            // Déclencher l'action JSF après un petit délai
-            setTimeout(function () {
-                document.getElementById('navigationForm:applyWeekSelection').click();
-            }, 100);
-        }
-
-
-        function initializeWeekPicker() {
-            // Configuration Flatpickr
-            flatpickrInstance = flatpickr("#weekPicker", {
-                mode: "range",
-                inline: false,
-                dateFormat: "Y-m-d",
-                weekNumbers: false,
-                clickOpens: false,
-                locale: {
-                    firstDayOfWeek: 1,
-                    weekdays: {
-                        shorthand: ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'],
-                        longhand: ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
-                    },
-                    months: {
-                        shorthand: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jui', 'Jui', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'],
-                        longhand: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
-                    },
-                    rangeSeparator: ' au ',
-                    weekAbbreviation: 'Sem.'
-                },
-                onReady: function (selectedDates, dateStr, instance) {
-                    // Synchroniser avec la semaine courante au chargement
-                    setTimeout(function () {
-                        updatePickerFromJSF();
-
-                        const weekNumbers = instance.calendarContainer.querySelectorAll('.flatpickr-weeknumber');
-                        weekNumbers.forEach(function (weekNumElement) {
-                            weekNumElement.addEventListener('click', function () {
-                                const weekNumber = parseInt(this.textContent);
-                                selectWeekByNumber(weekNumber, instance);
-                            });
-                        });
-                    }, 200);
-                },
-                onChange: function (selectedDates, dateStr, instance) {
-                    console.log('📅 onChange déclenché avec', selectedDates.length, 'dates');
-
-                    if (selectedDates.length >= 1) {
-                        const selectedDate = selectedDates[0];
-                        const monday = getMonday(selectedDate);
-                        const sunday = getSunday(selectedDate);
-
-                        console.log('📅 Semaine calculée:', monday.toLocaleDateString('fr-FR'), '-', sunday.toLocaleDateString('fr-FR'));
-
-                        // Mettre à jour le picker pour afficher la semaine complète
-                        instance.setDate([monday, sunday], false);
-                        updateButtonText(monday, sunday);
-                        updateJSFFields(monday, sunday);
-                    }
+            function getWeekNumber(date) {
+                // Utiliser la même logique que Flatpickr (ISO 8601)
+                const target = new Date(date.valueOf());
+                const dayNumber = (date.getDay() + 6) % 7;
+                target.setDate(target.getDate() - dayNumber + 3);
+                const firstThursday = target.valueOf();
+                target.setMonth(0, 1);
+                if (target.getDay() !== 4) {
+                    target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
                 }
-            });
+                return 1 + Math.ceil((firstThursday - target) / 604800000);
+            }
+
+            function updatePickerFromJSF() {
+                if (!flatpickrInstance) return;
+
+                const currentWeekField = document.getElementById('navigationForm:currentWeekMonday');
+                if (!currentWeekField || !currentWeekField.value) return;
+
+                const currentMonday = new Date(currentWeekField.value);
+                const currentSunday = new Date(currentMonday);
+                currentSunday.setDate(currentMonday.getDate() + 6);
+
+                console.log('🔄 Synchronisation picker avec:', currentMonday.toLocaleDateString('fr-FR'));
+
+                // Mettre à jour le picker sans déclencher l'événement onChange
+                flatpickrInstance.setDate([currentMonday, currentSunday], false);
+                updateButtonText(currentMonday, currentSunday);
+            }
+
+            function updateButtonText(monday, sunday) {
+                const weekNumber = getWeekNumber(monday);
+                const mondayStr = monday.toLocaleDateString('fr-FR', {
+                    day: 'numeric',
+                    month: 'short'
+                });
+                const sundayStr = sunday.toLocaleDateString('fr-FR', {
+                    day: 'numeric',
+                    month: 'short'
+                });
+
+                /*
+                document.getElementById('weekPickerBtn').textContent =
+                    `📅 Semaine ${weekNumber} (${mondayStr} - ${sundayStr})`;
+                    */
+
+            }
+
+            // Configuration Flatpickr
+
 
             // Gestionnaire de clic sur le bouton
             document.getElementById('weekPickerBtn').addEventListener('click', function (e) {
@@ -519,30 +451,106 @@
                 flatpickrInstance.open();
             });
 
-            function selectWeekByNumber(weekNumber, instance) {
-                const currentYear = new Date().getFullYear();
+            // Mise à jour des champs JSF et déclenchement de l'action
+            function updateJSFFields(monday, sunday) {
+                const weekStartField = document.getElementById('navigationForm:selectedWeekStart');
+                const weekEndField = document.getElementById('navigationForm:selectedWeekEnd');
 
-                // Trouver le 4 janvier de l'année courante (toujours en semaine 1 selon ISO 8601)
-                const jan4 = new Date(currentYear, 0, 4);
+                if (weekStartField) weekStartField.value = monday.toISOString().split('T')[0];
+                if (weekEndField) weekEndField.value = sunday.toISOString().split('T')[0];
 
-                // Trouver le lundi de la semaine du 4 janvier
-                const jan4DayOfWeek = (jan4.getDay() + 6) % 7; // Lundi = 0
-                const firstMonday = new Date(jan4);
-                firstMonday.setDate(jan4.getDate() - jan4DayOfWeek);
-
-                // Calculer le lundi de la semaine demandée
-                const targetMonday = new Date(firstMonday);
-                targetMonday.setDate(firstMonday.getDate() + (weekNumber - 1) * 7);
-
-                // Calculer le dimanche correspondant
-                const targetSunday = new Date(targetMonday);
-                targetSunday.setDate(targetMonday.getDate() + 6);
-
-                console.log(`Sélection semaine ${weekNumber}: du ${targetMonday.toLocaleDateString('fr-FR')} au ${targetSunday.toLocaleDateString('fr-FR')}`);
-
-                instance.setDate([targetMonday, targetSunday], true);
+                // Déclencher l'action JSF après un petit délai
+                setTimeout(function () {
+                    document.getElementById('navigationForm:applyWeekSelection').click();
+                }, 100);
             }
-        }
-    </script>
-</h:body>
-</html>
+
+
+            function initializeWeekPicker() {
+                // Configuration Flatpickr
+                flatpickrInstance = flatpickr("#weekPicker", {
+                    mode: "range",
+                    inline: false,
+                    dateFormat: "Y-m-d",
+                    weekNumbers: false,
+                    clickOpens: false,
+                    locale: {
+                        firstDayOfWeek: 1,
+                        weekdays: {
+                            shorthand: ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'],
+                            longhand: ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
+                        },
+                        months: {
+                            shorthand: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jui', 'Jui', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'],
+                            longhand: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
+                        },
+                        rangeSeparator: ' au ',
+                        weekAbbreviation: 'Sem.'
+                    },
+                    onReady: function (selectedDates, dateStr, instance) {
+                        // Synchroniser avec la semaine courante au chargement
+                        setTimeout(function () {
+                            updatePickerFromJSF();
+
+                            const weekNumbers = instance.calendarContainer.querySelectorAll('.flatpickr-weeknumber');
+                            weekNumbers.forEach(function (weekNumElement) {
+                                weekNumElement.addEventListener('click', function () {
+                                    const weekNumber = parseInt(this.textContent);
+                                    selectWeekByNumber(weekNumber, instance);
+                                });
+                            });
+                        }, 200);
+                    },
+                    onChange: function (selectedDates, dateStr, instance) {
+                        console.log('📅 onChange déclenché avec', selectedDates.length, 'dates');
+
+                        if (selectedDates.length >= 1) {
+                            const selectedDate = selectedDates[0];
+                            const monday = getMonday(selectedDate);
+                            const sunday = getSunday(selectedDate);
+
+                            console.log('📅 Semaine calculée:', monday.toLocaleDateString('fr-FR'), '-', sunday.toLocaleDateString('fr-FR'));
+
+                            // Mettre à jour le picker pour afficher la semaine complète
+                            instance.setDate([monday, sunday], false);
+                            updateButtonText(monday, sunday);
+                            updateJSFFields(monday, sunday);
+                        }
+                    }
+                });
+
+                // Gestionnaire de clic sur le bouton
+                document.getElementById('weekPickerBtn').addEventListener('click', function (e) {
+                    e.preventDefault();
+                    // Synchroniser avant d'ouvrir
+                    updatePickerFromJSF();
+                    flatpickrInstance.open();
+                });
+
+                function selectWeekByNumber(weekNumber, instance) {
+                    const currentYear = new Date().getFullYear();
+
+                    // Trouver le 4 janvier de l'année courante (toujours en semaine 1 selon ISO 8601)
+                    const jan4 = new Date(currentYear, 0, 4);
+
+                    // Trouver le lundi de la semaine du 4 janvier
+                    const jan4DayOfWeek = (jan4.getDay() + 6) % 7; // Lundi = 0
+                    const firstMonday = new Date(jan4);
+                    firstMonday.setDate(jan4.getDate() - jan4DayOfWeek);
+
+                    // Calculer le lundi de la semaine demandée
+                    const targetMonday = new Date(firstMonday);
+                    targetMonday.setDate(firstMonday.getDate() + (weekNumber - 1) * 7);
+
+                    // Calculer le dimanche correspondant
+                    const targetSunday = new Date(targetMonday);
+                    targetSunday.setDate(targetMonday.getDate() + 6);
+
+                    console.log(`Sélection semaine ${weekNumber}: du ${targetMonday.toLocaleDateString('fr-FR')} au ${targetSunday.toLocaleDateString('fr-FR')}`);
+
+                    instance.setDate([targetMonday, targetSunday], true);
+                }
+            }
+        </script>
+    </ui:define>
+</ui:composition>

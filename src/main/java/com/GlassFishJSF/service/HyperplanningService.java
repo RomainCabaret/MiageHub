@@ -46,8 +46,6 @@ public class HyperplanningService {
     }
 
     public void scrapAllWeeks() {
-        System.setProperty("webdriver.chrome.driver", "C:\\Program Files\\chromeDriver\\chromedriver.exe");
-
         WebDriverManager.chromedriver().setup();
 
 
@@ -56,6 +54,14 @@ public class HyperplanningService {
         options.addArguments("--disable-gpu");
         options.addArguments("--window-size=1920,901");
         options.addArguments("--remote-allow-origins=*");
+
+        // pour Ubuntu/serveur
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+
+        String userDataDir = "/tmp/chrome-user-data-" + System.currentTimeMillis() + "-" + Thread.currentThread().getId();
+        options.addArguments("--user-data-dir=" + userDataDir);
+
 
 
         WebDriver driver = new ChromeDriver(options);
@@ -222,7 +228,6 @@ public class HyperplanningService {
 
         System.out.println("on rentre " +  dateSouhaitee.toString());
 
-        System.setProperty("webdriver.chrome.driver", "C:\\Program Files\\chromeDriver\\chromedriver.exe");
 
         ChromeOptions options = new ChromeOptions();
 //        options.addArguments("--headless=new"); // Headless = pas d'interface graphique

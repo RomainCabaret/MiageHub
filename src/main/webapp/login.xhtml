@@ -1,83 +1,89 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="http://xmlns.jcp.org/jsf/html">
-<h:head>
-    <title>MiageHub - Accès Sécurisé</title>
-    <h:outputStylesheet library="css" name="login.css"/>
-</h:head>
-<h:body>
-    <div class="background-overlay"></div>
-    <div class="floating-elements" id="floatingElements"></div>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:ui="jakarta.faces.facelets"
+                template="template.xhtml">
 
-    <div class="login-container">
-        <div class="logo-section">
-            <h1 class="title">MIAGEHUB</h1>
-            <p class="subtitle">M1 MIAGE APPRENTISAGE</p>
+
+    <ui:define name="title">MiageHub - Accès Sécurisé</ui:define>
+
+    <ui:define name="head-resources">
+        <h:outputStylesheet library="css" name="login.css"/>
+    </ui:define>
+
+
+    <ui:define name="content">
+        <div class="background-overlay"></div>
+        <div class="floating-elements" id="floatingElements"></div>
+
+        <div class="login-container">
+            <div class="logo-section">
+                <h1 class="title">MIAGEHUB</h1>
+                <p class="subtitle">M1 MIAGE APPRENTISAGE</p>
+            </div>
+
+            <h:form>
+                <div class="messages" id="messages">
+                    <h:messages escape="false" layout="table"/>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Code d'accès sécurisé</label>
+                    <h:inputSecret id="password"
+                                   value="#{loginBean.password}"
+                                   required="true"
+                                   requiredMessage="Veuillez saisir votre code d'accès sécurisé"
+                                   styleClass="form-input"
+                                   placeholder="Entrez votre code d'accès"/>
+                </div>
+
+                <h:commandButton value="Se connecter"
+                                 action="#{loginBean.returnAction}"
+                                 styleClass="submit-btn"
+                                 onclick="this.classList.add('loading'); this.value='Connexion en cours...'"/>
+            </h:form>
+
+            <div class="security-footer">
+                <div class="security-text">
+                    Par CABARET Romain
+                </div>
+            </div>
         </div>
 
-        <h:form>
-            <div class="messages" id="messages">
-                <h:messages escape="false" layout="table" />
-            </div>
+        <script>
+            function createFloatingElements() {
+                const container = document.getElementById('floatingElements');
+                const elementCount = 15;
 
-            <div class="form-group">
-                <label class="form-label" for="password">Code d'accès sécurisé</label>
-                <h:inputSecret id="password"
-                               value="#{loginBean.password}"
-                               required="true"
-                               requiredMessage="Veuillez saisir votre code d'accès sécurisé"
-                               styleClass="form-input"
-                               placeholder="Entrez votre code d'accès" />
-            </div>
-
-            <h:commandButton value="Se connecter"
-                             action="#{loginBean.returnAction}"
-                             styleClass="submit-btn"
-                             onclick="this.classList.add('loading'); this.value='Connexion en cours...'" />
-        </h:form>
-
-        <div class="security-footer">
-            <div class="security-text">
-                Par CABARET Romain
-            </div>
-        </div>
-    </div>
-
-    <script>
-        function createFloatingElements() {
-            const container = document.getElementById('floatingElements');
-            const elementCount = 15;
-
-            for (let i = 0; i &lt; elementCount; i++) {
-                const element = document.createElement('div');
-                element.className = 'floating-element';
-                element.style.left = Math.random() * 100 + '%';
-                element.style.animationDuration = (Math.random() * 5 + 8) + 's';
-                element.style.animationDelay = Math.random() * 5 + 's';
-                container.appendChild(element);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            createFloatingElements();
-
-            const messagesContainer = document.querySelector('.messages');
-            const messages = messagesContainer.querySelector('*');
-            if (messages &amp;&amp; messages.textContent.trim()) {
-                messagesContainer.classList.add('show');
+                for (let i = 0; i &lt; elementCount; i++) {
+                    const element = document.createElement('div');
+                    element.className = 'floating-element';
+                    element.style.left = Math.random() * 100 + '%';
+                    element.style.animationDuration = (Math.random() * 5 + 8) + 's';
+                    element.style.animationDelay = Math.random() * 5 + 's';
+                    container.appendChild(element);
+                }
             }
 
-            const inputs = document.querySelectorAll('.form-input');
-            inputs.forEach(input => {
-                input.addEventListener('focus', function() {
-                    this.parentElement.style.transform = 'scale(1.02)';
-                });
+            document.addEventListener('DOMContentLoaded', function () {
+                createFloatingElements();
 
-                input.addEventListener('blur', function() {
-                    this.parentElement.style.transform = 'scale(1)';
+                const messagesContainer = document.querySelector('.messages');
+                const messages = messagesContainer.querySelector('*');
+                if (messages &amp;&amp; messages.textContent.trim()) {
+                    messagesContainer.classList.add('show');
+                }
+
+                const inputs = document.querySelectorAll('.form-input');
+                inputs.forEach(input => {
+                    input.addEventListener('focus', function () {
+                        this.parentElement.style.transform = 'scale(1.02)';
+                    });
+
+                    input.addEventListener('blur', function () {
+                        this.parentElement.style.transform = 'scale(1)';
+                    });
                 });
             });
-        });
-    </script>
-</h:body>
-</html>
+        </script>
+    </ui:define>
+</ui:composition>

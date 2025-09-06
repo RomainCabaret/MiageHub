@@ -1,15 +1,19 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="http://xmlns.jcp.org/jsf/html">
-<h:head>
-    <title>Accueil JSF</title>
-</h:head>
-<h:body>
+<ui:composition  xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html" xmlns:ui="jakarta.faces.facelets" template="template.xhtml">
+
+    <ui:define name="title">MiageHub - ADMIN</ui:define>
+
+    <ui:define name="head-resources">
+
+    </ui:define>
+
+    <ui:define name="content">
+
         <h2>Administration </h2>
         <h:form>
             <h:commandButton value="Lancer le scraping" action="#{adminController.lancerScraping}" />
         </h:form>
 
         <h:outputText value="#{adminController.message}" style="color: green" />
-</h:body>
-</html>
+    </ui:define>
+</ui:composition>

@@ -1,5 +1,6 @@
 package com.GlassFishJSF.dao;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;
 import jakarta.faces.view.ViewScoped;
@@ -16,6 +17,7 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.logging.Level;
+import jakarta.annotation.Resource;
 
 @Named
 @ViewScoped
@@ -24,8 +26,23 @@ public class DriveDAO implements Serializable {
     private static final Logger LOGGER = Logger.getLogger(DriveDAO.class.getName());
 
     // Configuration
-    private static final String BASE_PATH = "C:\\Users\\Romain\\Desktop\\GlassFishDrive";
+    @Resource(name="BASE_PATH")
+    private String BASE_PATH;
     private static final long MAX_FILE_SIZE = 10L * 1024 * 1024; // 10 Mo
+
+
+    @PostConstruct
+    private void init() {
+        try {
+            javax.naming.Context ctx = new javax.naming.InitialContext();
+            String absolutePath = (String) ctx.lookup("BASE_PATH");
+            System.out.println("JNDI lookup BASE_PATH: " + absolutePath);
+            BASE_PATH = absolutePath;
+            currentPath = absolutePath;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     // Variables d'état
     private String currentPath = BASE_PATH;
@@ -54,6 +71,10 @@ public class DriveDAO implements Serializable {
 
     public String getRenameNewName() { return renameNewName; }
     public void setRenameNewName(String renameNewName) { this.renameNewName = renameNewName; }
+
+    private void resetUploadedFile() {
+        uploadedFile = null;
+    }
 
     // ==================== UPLOAD SELON DOC PRIMEFACES ====================
 
@@ -87,95 +108,77 @@ public class DriveDAO implements Serializable {
      * Logique commune de traitement du fichier
      */
     private void processFile(UploadedFile file) {
-        System.out.println("=== DÉBUT processFile ===");
-        System.out.println("Nom: " + file.getFileName());
-        System.out.println("Taille: " + file.getSize() + " bytes (" + (file.getSize() / 1024.0) + " Ko)");
-        System.out.println("Type MIME: " + file.getContentType());
-
         try {
-            // Validations de base
             validateCurrentPath();
             validateFile(file);
 
-            // Résolution du nom final
-            String finalFileName = resolveNameConflict(file.getFileName());
-            Path targetPath = Paths.get(currentPath, finalFileName);
+            String finalName = resolveNameConflict(file.getFileName());
+            Path targetPath = Paths.get(currentPath).resolve(finalName).normalize();
 
-            System.out.println("Chemin cible: " + targetPath);
-
-            // Créer les répertoires parents si nécessaire
             Files.createDirectories(targetPath.getParent());
 
-            // Copie du fichier
-            try (InputStream input = file.getInputStream()) {
-                long bytesCopied = Files.copy(input, targetPath, StandardCopyOption.REPLACE_EXISTING);
-                System.out.println("Bytes copiés: " + bytesCopied);
+            try (InputStream in = file.getInputStream()) {
+                Files.copy(in, targetPath, StandardCopyOption.REPLACE_EXISTING);
             }
 
-            // Vérifications post-upload
             if (!Files.exists(targetPath)) {
-                throw new IOException("Le fichier n'a pas été créé sur le disque");
+                throw new IOException("Échec de création du fichier");
             }
 
-            long finalSize = Files.size(targetPath);
-            System.out.println("Taille finale sur disque: " + finalSize);
-
-            // Succès
-            addSuccessMessage(String.format("Fichier '%s' uploadé avec succès (%.2f Ko)",
-                    finalFileName, finalSize / 1024.0));
-
-            System.out.println("=== UPLOAD RÉUSSI ===");
-
+            addSuccessMessage("Fichier uploadé avec succès : " + finalName);
         } catch (Exception e) {
-            System.err.println("ERREUR processFile: " + e.getMessage());
-            e.printStackTrace();
-            addErrorMessage("Erreur traitement fichier: " + e.getMessage());
+            LOGGER.log(Level.WARNING, "Erreur upload fichier", e);
+            addErrorMessage("Erreur upload : " + e.getMessage());
+        } finally {
+            resetUploadedFile();
         }
     }
 
     // ==================== VALIDATIONS ====================
 
     private void validateCurrentPath() throws IOException {
-        Path path = Paths.get(currentPath).normalize();
-        Path basePath = Paths.get(BASE_PATH).normalize();
+        if (BASE_PATH == null || BASE_PATH.isEmpty()) {
+            throw new IOException("BASE_PATH non configuré");
+        }
 
-        if (!path.startsWith(basePath)) {
-            currentPath = BASE_PATH;
+        Path basePath = Paths.get(BASE_PATH).toAbsolutePath().normalize();
+        if (currentPath == null || currentPath.isEmpty()) {
+            currentPath = basePath.toString();
+        }
+
+        Path normalizedCurrent = Paths.get(currentPath).toAbsolutePath().normalize();
+        if (!normalizedCurrent.startsWith(basePath)) {
+            currentPath = basePath.toString();
             throw new SecurityException("Chemin non autorisé");
         }
 
-        if (!Files.exists(path) || !Files.isDirectory(path)) {
-            currentPath = BASE_PATH;
-            throw new IOException("Le répertoire n'existe plus");
+        if (!Files.exists(normalizedCurrent)) {
+            Files.createDirectories(normalizedCurrent);
         }
+
+        currentPath = normalizedCurrent.toString();
     }
 
     private void validateFile(UploadedFile file) throws IOException {
         if (file == null || file.getFileName() == null || file.getFileName().trim().isEmpty()) {
-            throw new IOException("Aucun fichier ou nom vide");
-        }
-
-        if (file.getSize() > MAX_FILE_SIZE) {
-            throw new IOException(String.format("Fichier trop volumineux (%.1f Mo). Max: %.1f Mo",
-                    file.getSize() / (1024.0 * 1024.0), MAX_FILE_SIZE / (1024.0 * 1024.0)));
+            throw new IOException("Aucun fichier sélectionné");
         }
 
         if (file.getSize() <= 0) {
-            throw new IOException("Le fichier est vide");
+            throw new IOException("Fichier vide");
         }
 
-        // Validation extension simple
-        String fileName = file.getFileName().toLowerCase();
-        String[] allowedExtensions = {".jpg", ".jpeg", ".png", ".gif", ".pdf", ".txt", ".zip", ".rar", ".docx", "doc", ".xlsx"};
-
-        boolean validExtension = Arrays.stream(allowedExtensions)
-                .anyMatch(ext -> fileName.endsWith(ext));
-
-        if (!validExtension) {
-            throw new IOException("Type de fichier non autorisé. Extensions acceptées : " +
-                    String.join(", ", allowedExtensions));
+        if (file.getSize() > MAX_FILE_SIZE) {
+            throw new IOException(String.format("Fichier trop volumineux (%.1f Mo max)", MAX_FILE_SIZE / (1024.0 * 1024.0)));
         }
+
+        // Extensions autorisées (Linux-case insensitive)
+        String lowerName = file.getFileName().toLowerCase(Locale.ROOT);
+        List<String> allowed = List.of(".jpg",".jpeg",".png",".gif",".pdf",".txt",".zip",".rar",".docx",".doc",".xlsx");
+        boolean valid = allowed.stream().anyMatch(lowerName::endsWith);
+        if (!valid) throw new IOException("Extension non autorisée : " + lowerName);
     }
+
 
     private String resolveNameConflict(String fileName) {
         Path targetPath = Paths.get(currentPath, fileName);
