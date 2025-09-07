@@ -45,7 +45,9 @@ public class HyperplanningService {
         this.coursDAO = coursDAO;
     }
 
-    public void scrapAllWeeks() {
+    public List<Cours> scrapAllWeeks() {
+        List<Cours> coursList = new ArrayList<>();
+
         WebDriverManager.chromedriver().setup();
 
 
@@ -203,6 +205,8 @@ public class HyperplanningService {
                                 cours.setNbEtudiants(null);
                             }
 
+
+                            coursList.add(cours);
                             coursDAO.save(cours);
                         }
                     }
@@ -220,6 +224,8 @@ public class HyperplanningService {
         } finally {
             driver.quit();
         }
+
+        return coursList;
     }
 
 

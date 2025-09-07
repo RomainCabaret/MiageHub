@@ -11,7 +11,8 @@ import java.util.Set;
 
 @WebFilter(filterName = "AuthFilter", urlPatterns = {
         "/admin.xhtml", "/admin",
-        "/drive.xhtml", "/drive"
+        "/drive.xhtml", "/drive",
+        "/login.xhtml", "/login"
 })
 public class AuthFilter implements Filter {
 
@@ -26,27 +27,31 @@ public class AuthFilter implements Filter {
             throws IOException, ServletException {
 
         HttpServletRequest req = (HttpServletRequest) request;
-        String requestURI = req.getRequestURI();
+        HttpServletResponse resp = (HttpServletResponse) response;
+
         String contextPath = req.getContextPath();
-        String path = requestURI.substring(contextPath.length());
+        String path = req.getRequestURI().substring(contextPath.length());
 
-        // Debug
-        System.out.println("🔒 AuthFilter - Path: " + path);
+        HttpSession session = req.getSession(false);
+        boolean isLoggedIn = session != null && session.getAttribute("user") != null;
 
-        // Vérifier si c'est une page protégée
-        if (PROTECTED_PATHS.contains(path)) {
-            HttpSession session = req.getSession(false);
-            boolean isLoggedIn = session != null && session.getAttribute("user") != null;
-
-            if (!isLoggedIn) {
-                System.out.println("🔒 Accès refusé pour: " + path);
-                ((HttpServletResponse) response).sendRedirect(req.getContextPath() + "/login");
+        // 🔒 Si déjà connecté → accès à /login interdit
+        if (path.equals("/login") || path.equals("/login.xhtml")) {
+            if (isLoggedIn) {
+                resp.sendRedirect(contextPath + "/drive");
                 return;
-            } else {
-                System.out.println("🔒 Accès autorisé pour: " + path);
+            }
+        }
+
+        // 🔒 Si page protégée et pas loggé → rediriger vers login
+        if (PROTECTED_PATHS.contains(path)) {
+            if (!isLoggedIn) {
+                resp.sendRedirect(contextPath + "/login");
+                return;
             }
         }
 
         chain.doFilter(request, response);
     }
+
 }

@@ -44,7 +44,15 @@ public class CoursBean implements Serializable {
     @PostConstruct
     public void init() {
         allCours = coursDAO.findAll();
-        semaineCourante = LocalDate.now().with(DayOfWeek.MONDAY);
+
+        LocalDate today = LocalDate.now();
+        DayOfWeek day = today.getDayOfWeek();
+
+        if (day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY) {
+            semaineCourante = today.with(DayOfWeek.MONDAY).plusWeeks(1);
+        } else {
+            semaineCourante = today.with(DayOfWeek.MONDAY);
+        }
     }
 
     public void semainePrecedente() {
@@ -97,10 +105,11 @@ public class CoursBean implements Serializable {
 
     /** Cours groupés par jour pour la semaine affichée */
     public Map<DayOfWeek, List<Cours>> getCoursParJour() {
+        List<Cours> allCours = coursDAO.findAll();
+
         LocalDate lundi = semaineCourante;
         LocalDate vendredi = lundi.plusDays(4);
 
-        // Déduplication par id avant tri et groupement
         Map<Long, Cours> uniqueCours = allCours.stream()
                 .filter(c -> {
                     LocalDate dateCours = c.getDate().toInstant()
@@ -218,6 +227,21 @@ public class CoursBean implements Serializable {
     public String getCssClassForCours(String matiere, String cours) {
         return COURS_COLORS.getOrDefault(matiere, "event-default") +
                 (cours.equals("EXAMEN") ? " schedule__event--exam" : "");
+    }
+
+    public boolean isTodayOrOtherWeek(DayOfWeek day) {
+        LocalDate today = LocalDate.now();
+        LocalDate mondayThisWeek = today.with(DayOfWeek.MONDAY);
+
+        if (semaineCourante == null) {
+            return true;
+        }
+
+        if (semaineCourante.equals(mondayThisWeek)) {
+            return day.equals(today.getDayOfWeek());
+        }
+
+        return true;
     }
 
     public String redirectionIntoDriver() {

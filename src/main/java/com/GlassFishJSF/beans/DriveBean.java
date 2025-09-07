@@ -21,9 +21,6 @@ public class DriveBean implements Serializable {
     }
 
 
-    public void deleteFile(String filename) {
-        driveDAO.delete(filename);
-    }
 
 
 }

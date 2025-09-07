@@ -146,9 +146,6 @@
                                                        update="messages filesTable breadcrumbForm driveContainerForm"
                                                        process="@this"
                                         />
-                                        <button class="btn btn--ghost btn--sm btnRenameAction "
-                                                onclick="openRenameModal('#{f}')" type="button">✏️ Renommer
-                                        </button>
                                     </div>
                                 </article>
                             </ui:repeat>
@@ -172,9 +169,6 @@
                                         <button class="btn btn--ghost btn--sm btnRenameAction"
                                                 onclick="openRenameModal(`#{f}`)" type="button">✏️ Renommer
                                         </button>
-                                        <p:commandButton styleClass="btn btn--primary btn--sm" value="🗑 Supprimer"
-                                                         action="#{driveDAO.delete(f)}"
-                                                         update="messages filesTable breadcrumbForm driveContainerForm"/>
                                     </div>
                                 </article>
 
@@ -283,10 +277,10 @@
                         </div>
                     </div>
                     <div class="modal__footer">
-                        <button class="btn btn--ghost" data-close-modal="data-close-modal">Annuler</button>
+                        <button class="btn btn--ghost" data-close-modal="data-close-modal" id="cancelCreateFolderActionBtn">Annuler</button>
                         <p:commandButton styleClass="btn btn--primary" action="#{driveDAO.handleCreateFolder}"
                                          value="Valider" update="messages filesTable breadcrumbForm driveContainerForm"
-                                         data-close-modal="data-close-modal"/>
+                                         data-close-modal="data-close-modal"  oncomplete="document.getElementById('cancelCreateFolderActionBtn').click()"/>
                     </div>
                 </div>
             </div>

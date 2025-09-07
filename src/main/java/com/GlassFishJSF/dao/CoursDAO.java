@@ -13,6 +13,7 @@ import java.util.Optional;
 
 @ApplicationScoped
 public class CoursDAO {
+
     @PersistenceContext(unitName = "myPU")
     private EntityManager em;
 
@@ -20,7 +21,7 @@ public class CoursDAO {
         return em.createQuery("SELECT c FROM Cours c", Cours.class).getResultList();
     }
 
-    @Transactional
+    // SUPPRESSION de @Transactional - la transaction est gérée par le service
     public void save(Cours cours) {
         try {
             System.out.println("➡️ Tentative de sauvegarde du cours : " + cours);
@@ -29,18 +30,11 @@ public class CoursDAO {
         } catch (Exception e) {
             System.err.println("❌ Erreur lors de la sauvegarde du cours : " + e.getMessage());
             e.printStackTrace();
-
-            Throwable cause = e.getCause();
-            while (cause != null) {
-                System.err.println("Cause: " + cause);
-                cause = cause.getCause();
-            }
-
-            throw e; // si tu souhaites remonter l'exception
+            throw e;
         }
     }
 
-    @Transactional
+    // SUPPRESSION de @Transactional - la transaction est gérée par le service
     public void deleteAll() {
         try {
             int deletedCount = em.createQuery("DELETE FROM Cours").executeUpdate();
@@ -51,26 +45,4 @@ public class CoursDAO {
             throw e;
         }
     }
-//
-//    public Optional<Cours> findByUniqueFields(Cours cours) {
-//        List<Cours> results = em.createQuery("""
-//                SELECT c FROM Cours c
-//                WHERE c.jour = :jour AND c.horaire = :horaire AND c.matiere = :matiere AND c.salle = :salle
-//            """, Cours.class)
-//                .setParameter("jour", cours.getJour())
-//                .setParameter("horaire", cours.getHoraire())
-//                .setParameter("matiere", cours.getMatiere())
-//                .setParameter("salle", cours.getSalle())
-//                .getResultList();
-//
-//        return results.stream().findFirst();
-//    }
-//
-//    public List<Cours> getCoursForDate(LocalDate date) {
-//        return em.createQuery("SELECT c FROM Cours c WHERE c.jour = :date", Cours.class)
-//                .setParameter("date", date)
-//                .getResultList();
-//    }
-
-
 }

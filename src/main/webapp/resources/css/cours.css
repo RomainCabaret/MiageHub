@@ -508,6 +508,10 @@ body {
     --line: #1f2937;
 }
 
+#navigationForm{
+    color: var(--text);
+}
+
 /* Responsif */
 @media (max-width: 900px) {
     .schedule {
@@ -515,6 +519,7 @@ body {
     }
     .schedule__title {
         font-size: 1.1rem;
+        text-align: center;
     }
     .schedule__legend-item {
         font-size: 0.8rem;

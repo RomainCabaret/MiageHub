@@ -1,7 +1,7 @@
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="http://xmlns.jcp.org/jsf/html"
-      xmlns:ui="jakarta.faces.facelets"
-      xmlns:p="http://primefaces.org/ui" xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="http://primefaces.org/ui" xmlns:f="http://java.sun.com/jsf/core"
                 template="template.xhtml">
 
 
@@ -100,9 +100,8 @@
         <main class="schedule" aria-labelledby="schedule-title">
             <header class="schedule__header">
                 <h1 id="schedule-title" class="schedule__title">
-                    Emploi du temps — Semaine
+                    Emploi du temps — M1 MIAGE APPRENTISAGE
                 </h1>
-
 
                 <div>
                     <input type="hidden" id="weekPicker"/>
@@ -260,7 +259,8 @@
                             <p class="schedule__event-meta COURSE__POPUP__ENABLED">
                                 #{c.timestampDebut.toLocalDateTime().toLocalTime()}–#{c.timestampFin.toLocalDateTime().toLocalTime()} · Salle #{c.salle}
                             </p>
-                            <ui:fragment rendered="#{not empty c.typeCours and c.typeCours ne 'PRESENCE UNIVERSITAIRE'}">
+                            <ui:fragment
+                                    rendered="#{not empty c.typeCours and c.typeCours ne 'PRESENCE UNIVERSITAIRE'}">
                                 <p class="schedule__event-meta COURSE__POPUP__ENABLED">#{c.typeCours}</p>
                             </ui:fragment>
 
@@ -295,16 +295,12 @@
                 <!-- Affichage normal des cours -->
                 <ui:repeat value="#{coursBean.coursParJour.entrySet()}" var="entry" varStatus="status" rendered="#{not coursBean.coursParJour.isEmpty()}">
 
-                    <!-- PREMIER JOUR (Lundi) avec open -->
-                    <h:panelGroup rendered="#{status.first}">
+                    <!-- Variante quand le jour doit être ouvert -->
+                    <h:panelGroup rendered="#{coursBean.isTodayOrOtherWeek(entry.key)}">
                         <details class="schedule-accordion__item" open="open">
                             <summary class="schedule-accordion__summary">
-                    <span class="schedule-accordion__day">
-                        #{coursBean.getJourFrancais(entry.key)}
-                    </span>
-                                <span class="schedule-accordion__meta">
-                        #{entry.value.size()} événements
-                    </span>
+                                <span class="schedule-accordion__day">#{coursBean.getJourFrancais(entry.key)}</span>
+                                <span class="schedule-accordion__meta">#{entry.value.size()} événements</span>
                             </summary>
                             <div class="schedule-accordion__panel">
                                 <ui:repeat value="#{entry.value}" var="c">
@@ -321,16 +317,12 @@
                         </details>
                     </h:panelGroup>
 
-                    <!-- AUTRES JOURS -->
-                    <h:panelGroup rendered="#{not status.first}">
-                        <details class="schedule-accordion__item" open="open">
+                    <!-- Variante quand le jour NE doit PAS être ouvert -->
+                    <h:panelGroup rendered="#{not coursBean.isTodayOrOtherWeek(entry.key)}">
+                        <details class="schedule-accordion__item">
                             <summary class="schedule-accordion__summary">
-                    <span class="schedule-accordion__day">
-                        #{coursBean.getJourFrancais(entry.key)}
-                    </span>
-                                <span class="schedule-accordion__meta">
-                        #{entry.value.size()} événements
-                    </span>
+                                <span class="schedule-accordion__day">#{coursBean.getJourFrancais(entry.key)}</span>
+                                <span class="schedule-accordion__meta">#{entry.value.size()} événements</span>
                             </summary>
                             <div class="schedule-accordion__panel">
                                 <ui:repeat value="#{entry.value}" var="c">
