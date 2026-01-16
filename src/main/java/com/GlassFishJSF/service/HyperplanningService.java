@@ -56,13 +56,13 @@ public class HyperplanningService {
         options.addArguments("--disable-gpu");
         options.addArguments("--window-size=1920,901");
         options.addArguments("--remote-allow-origins=*");
-
-        // pour Ubuntu/serveur
+//
+//        // pour Ubuntu/serveur
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
-
-        String userDataDir = "/tmp/chrome-user-data-" + System.currentTimeMillis() + "-" + Thread.currentThread().getId();
-        options.addArguments("--user-data-dir=" + userDataDir);
+//
+//        String userDataDir = "/tmp/chrome-user-data-" + System.currentTimeMillis() + "-" + Thread.currentThread().getId();
+//        options.addArguments("--user-data-dir=" + userDataDir);
 
 
 
@@ -95,7 +95,7 @@ public class HyperplanningService {
                     WebElement boutonSemaine = wait.until(ExpectedConditions.elementToBeClickable(By.id(idSemaine)));
                     js.executeScript("arguments[0].scrollIntoView(true);", boutonSemaine);
                     boutonSemaine.click();
-                    Thread.sleep(1000); // attendre chargement de la semaine
+                    Thread.sleep(3000); // attendre chargement de la semaine
 
                     Map<String, List<Map<String, String>>> currentWeek = WebScraperHelper.extractCoursParJour(driver);
 

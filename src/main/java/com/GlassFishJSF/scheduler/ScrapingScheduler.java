@@ -33,7 +33,7 @@ public class ScrapingScheduler {
     @Inject
     private CoursService coursService;
 
-    @Schedule(minute = "*/10", hour = "*", persistent = false)
+    @Schedule(minute = "*/10", hour = "*", persistent = true)
     public void runScraping() {
         try {
             System.out.println("[SCRAPING] Lancement auto du scraping...");

@@ -57,6 +57,7 @@
 
 
 
+
     <servlet-mapping>
         <servlet-name>FacesServlet</servlet-name>
         <url-pattern>*.xhtml</url-pattern>
@@ -66,6 +67,21 @@
         <param-name>jakarta.faces.CLIENT_WINDOW_MODE</param-name>
         <param-value>none</param-value>
     </context-param>
+
+    <context-param>
+        <param-name>javax.faces.STATE_SAVING_METHOD</param-name>
+        <param-value>server</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>javax.faces.SERIALIZE_SERVER_STATE</param-name>
+        <param-value>true</param-value>
+    </context-param>
+
+    <error-page>
+        <exception-type>jakarta.faces.application.ViewExpiredException</exception-type>
+        <location>/index.xhtml</location>
+    </error-page>
 
     <context-param>
         <param-name>jakarta.faces.CONFIG_FILES</param-name>

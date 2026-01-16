@@ -18,6 +18,16 @@ public class WebScraperHelper {
                 document.querySelectorAll(".EmploiDuTemps_Element").forEach((element) => {
                   const title = element.querySelector(".cours-simple")?.getAttribute("title") || "Horaire inconnu";
                   const spans = Array.from(element.querySelectorAll(".contenu")).map(s => s.innerText.trim());
+                  
+                   if (!title) {
+                     return;
+                   }
+               
+                  
+                   if (title === "Horaire inconnu") {
+                      return;
+                    }
+                
                 
                   let type = "Non spécifié (type)";
                   let matiere = "Non spécifié (matière)";
@@ -40,12 +50,14 @@ public class WebScraperHelper {
                     }
                   } else if (spans[0]) {
                     matiere = spans[0];
+                  } else {
                   }
+                
                 
                   // --- Salles ---
                   salles = spans.filter(txt => txt.includes("IBGBI-"));
                   if (salles.length === 0) {
-                    salles = ["Non spécifié (salle)"];
+                    salles = ['Non spécifié (salle)'];
                   }
                 
                   // --- Nb étudiants ---
@@ -76,6 +88,8 @@ public class WebScraperHelper {
                     const jour = match[1].padStart(2, "0");
                     const mois = match[2];
                     cleJour = jour + " " + mois;
+                  } else {
+                     return; 
                   }
                 
                   if (!coursParJour[cleJour]) {

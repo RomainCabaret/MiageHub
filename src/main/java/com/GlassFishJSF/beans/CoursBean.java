@@ -3,6 +3,7 @@ package com.GlassFishJSF.beans;
 import com.GlassFishJSF.dao.CoursDAO;
 import com.GlassFishJSF.model.Cours;
 import com.GlassFishJSF.utils.DateUtils;
+import com.GlassFishJSF.utils.FeriesUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.context.SessionScoped;
@@ -123,14 +124,34 @@ public class CoursBean implements Serializable {
                         (existing, replacement) -> existing // en cas de doublon, garder le premier
                 ));
 
-        // Tri et regroupement
-        return uniqueCours.values().stream()
+        // Créer la map avec les cours groupés par jour
+        Map<DayOfWeek, List<Cours>> coursParJourTemp = uniqueCours.values().stream()
                 .sorted(Comparator.comparing(Cours::getDate).thenComparing(Cours::getTimestampDebut))
                 .collect(Collectors.groupingBy(
                         c -> c.getDate().toInstant().atZone(ZoneId.systemDefault()).getDayOfWeek(),
                         LinkedHashMap::new,
                         Collectors.toList()
                 ));
+
+        // Créer une nouvelle map dans l'ordre correct (Lundi -> Vendredi)
+        Map<DayOfWeek, List<Cours>> coursParJour = new LinkedHashMap<>();
+
+        for (DayOfWeek day : new DayOfWeek[]{
+                DayOfWeek.MONDAY,
+                DayOfWeek.TUESDAY,
+                DayOfWeek.WEDNESDAY,
+                DayOfWeek.THURSDAY,
+                DayOfWeek.FRIDAY
+        }) {
+            // Ajouter le jour s'il a des cours OU s'il est férié
+            if (coursParJourTemp.containsKey(day)) {
+                coursParJour.put(day, coursParJourTemp.get(day));
+            } else if (estJourFerie(day)) {
+                coursParJour.put(day, new ArrayList<>());
+            }
+        }
+
+        return coursParJour;
     }
 
 
@@ -166,18 +187,22 @@ public class CoursBean implements Serializable {
         this.weekPickerEnd = weekPickerEnd;
     }
 
-    public String getJourFrancais(java.time.DayOfWeek day) {
-        switch (day) {
-            case MONDAY: return "Lundi";
-            case TUESDAY: return "Mardi";
-            case WEDNESDAY: return "Mercredi";
-            case THURSDAY: return "Jeudi";
-            case FRIDAY: return "Vendredi";
-            case SATURDAY: return "Samedi";
-            case SUNDAY: return "Dimanche";
-            default: return day.toString();
+    public String getJourAvecDate(String dayName) {
+        try {
+            DayOfWeek day = DayOfWeek.valueOf(dayName);
+            return getJourAvecDate(day);
+        } catch (IllegalArgumentException e) {
+            return dayName;
         }
     }
+    public String getJourAvecDate(java.time.DayOfWeek day) {
+        LocalDate dateJour = semaineCourante.with(day);
+
+        DateTimeFormatter formatJourDate = DateTimeFormatter.ofPattern("EEE d MMMM", Locale.FRENCH);
+
+        return dateJour.format(formatJourDate);
+    }
+
 
     public int gridColumn(Date date) {
         return DateUtils.getGridColumn(date);
@@ -244,7 +269,19 @@ public class CoursBean implements Serializable {
         return true;
     }
 
+    public boolean estJourFerie(DayOfWeek day) {
+        LocalDate dateJour = semaineCourante.with(day);
+        return FeriesUtils.estJourFerie(dateJour);
+    }
+
+    public String getNomJourFerie(DayOfWeek day) {
+        LocalDate dateJour = semaineCourante.with(day);
+        return FeriesUtils.getNomJourFerie(dateJour);
+    }
+
     public String redirectionIntoDriver() {
         return "drive?faces-redirect=true";
     }
+
+
 }

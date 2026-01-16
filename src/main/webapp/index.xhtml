@@ -172,39 +172,54 @@
                 <div class="schedule__days" role="rowgroup">
                     <div class="schedule__corner" aria-hidden="true"></div>
                     <div
-                            class="schedule__day-name"
+                            class="schedule__day-name #{coursBean.estJourFerie('MONDAY') ? 'schedule__day-name--ferie' : ''}"
                             role="columnheader"
                             aria-label="Lundi"
                     >
-                        Lundi
+                        #{coursBean.getJourAvecDate('MONDAY')}
+                        <h:panelGroup rendered="#{coursBean.estJourFerie('MONDAY')}">
+                            <span class="schedule__ferie-badge">#{coursBean.getNomJourFerie('MONDAY')}</span>
+                        </h:panelGroup>
                     </div>
                     <div
-                            class="schedule__day-name"
+                            class="schedule__day-name #{coursBean.estJourFerie('TUESDAY') ? 'schedule__day-name--ferie' : ''}"
                             role="columnheader"
                             aria-label="Mardi"
                     >
-                        Mardi
+                        #{coursBean.getJourAvecDate('TUESDAY')}
+                        <h:panelGroup rendered="#{coursBean.estJourFerie('TUESDAY')}">
+                            <span class="schedule__ferie-badge">#{coursBean.getNomJourFerie('TUESDAY')}</span>
+                        </h:panelGroup>
                     </div>
                     <div
-                            class="schedule__day-name"
+                            class="schedule__day-name #{coursBean.estJourFerie('WEDNESDAY') ? 'schedule__day-name--ferie' : ''}"
                             role="columnheader"
                             aria-label="Mercredi"
                     >
-                        Mercredi
+                        #{coursBean.getJourAvecDate('WEDNESDAY')}
+                        <h:panelGroup rendered="#{coursBean.estJourFerie('WEDNESDAY')}">
+                            <span class="schedule__ferie-badge">#{coursBean.getNomJourFerie('WEDNESDAY')}</span>
+                        </h:panelGroup>
                     </div>
                     <div
-                            class="schedule__day-name"
+                            class="schedule__day-name #{coursBean.estJourFerie('THURSDAY') ? 'schedule__day-name--ferie' : ''}"
                             role="columnheader"
                             aria-label="Jeudi"
                     >
-                        Jeudi
+                        #{coursBean.getJourAvecDate('THURSDAY')}
+                        <h:panelGroup rendered="#{coursBean.estJourFerie('THURSDAY')}">
+                            <span class="schedule__ferie-badge">#{coursBean.getNomJourFerie('THURSDAY')}</span>
+                        </h:panelGroup>
                     </div>
                     <div
-                            class="schedule__day-name"
+                            class="schedule__day-name #{coursBean.estJourFerie('FRIDAY') ? 'schedule__day-name--ferie' : ''}"
                             role="columnheader"
                             aria-label="Vendredi"
                     >
-                        Vendredi
+                        #{coursBean.getJourAvecDate('FRIDAY')}
+                        <h:panelGroup rendered="#{coursBean.estJourFerie('FRIDAY')}">
+                            <span class="schedule__ferie-badge">#{coursBean.getNomJourFerie('FRIDAY')}</span>
+                        </h:panelGroup>
                     </div>
                 </div>
 
@@ -299,7 +314,7 @@
                     <h:panelGroup rendered="#{coursBean.isTodayOrOtherWeek(entry.key)}">
                         <details class="schedule-accordion__item" open="open">
                             <summary class="schedule-accordion__summary">
-                                <span class="schedule-accordion__day">#{coursBean.getJourFrancais(entry.key)}</span>
+                                <span class="schedule-accordion__day #{coursBean.estJourFerie(entry.key) ? 'schedule-accordion__day--ferie' : ''}">#{coursBean.getJourAvecDate(entry.key)}</span>
                                 <span class="schedule-accordion__meta">#{entry.value.size()} événements</span>
                             </summary>
                             <div class="schedule-accordion__panel">
@@ -321,7 +336,7 @@
                     <h:panelGroup rendered="#{not coursBean.isTodayOrOtherWeek(entry.key)}">
                         <details class="schedule-accordion__item">
                             <summary class="schedule-accordion__summary">
-                                <span class="schedule-accordion__day">#{coursBean.getJourFrancais(entry.key)}</span>
+                                <span class="schedule-accordion__day #{coursBean.estJourFerie(entry.key) ? 'schedule-accordion__day--ferie' : ''}">#{coursBean.getJourAvecDate(entry.key)}</span>
                                 <span class="schedule-accordion__meta">#{entry.value.size()} événements</span>
                             </summary>
                             <div class="schedule-accordion__panel">

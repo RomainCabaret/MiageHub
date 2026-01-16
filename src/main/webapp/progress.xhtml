@@ -1,0 +1,368 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:f="http://java.sun.com/jsf/core"
+                template="template.xhtml">
+
+    <ui:define name="title">Progression - Journée de Cours</ui:define>
+
+    <ui:define name="head-resources">
+        <h:outputStylesheet library="css" name="cours.css"/>
+        <h:outputStylesheet library="css" name="progress.css"/>
+        <meta http-equiv="refresh" content="30"/>
+    </ui:define>
+
+    <ui:define name="content">
+        <div class="progress-page">
+            <!-- Header avec horloge -->
+            <header class="progress-header">
+                <h1>🎯 Ma Journée de Cours</h1>
+                <div class="progress-header__time">
+                    <h:outputText value="#{progressBean.now}">
+                        <f:converter converterId="localDateTimeConverter"/>
+                    </h:outputText>
+                </div>
+                <div class="progress-header__date">
+                    <h:outputText value="#{progressBean.now}">
+                        <f:converter converterId="localDateTimeConverter"/>
+                    </h:outputText>
+                </div>
+            </header>
+
+            <!-- Pas de cours aujourd'hui -->
+            <h:panelGroup rendered="#{progressBean.coursAujourdhui.isEmpty()}">
+                <div class="no-course">
+                    <div class="no-course__icon">🌴</div>
+                    <h2 class="no-course__title">Pas de cours aujourd'hui !</h2>
+                    <p class="no-course__subtitle">Profitez de votre journée libre 😊</p>
+                </div>
+            </h:panelGroup>
+
+            <!-- Grille de progression -->
+            <h:panelGroup rendered="#{not progressBean.coursAujourdhui.isEmpty()}">
+                <div class="progress-grid">
+
+                    <!-- Section 1: Cours Actuel -->
+                    <details class="progress-section" open="open">
+                        <summary class="progress-section__header">
+                            <span class="progress-section__icon">📚</span>
+                            <span class="progress-section__title">Cours en ce moment</span>
+                            <span class="progress-section__badge">
+                                <h:outputText value="En cours" rendered="#{progressBean.coursActuel != null}"/>
+                                <h:outputText value="Aucun" rendered="#{progressBean.coursActuel == null}"/>
+                            </span>
+                        </summary>
+
+                        <div class="progress-section__content">
+                            <!-- Cours actuel -->
+                            <h:panelGroup rendered="#{progressBean.coursActuel != null}">
+                                <div class="progress-card progress-card--current">
+                                    <div class="progress-card__header">
+                                        <div class="progress-card__icon">🎓</div>
+                                        <div class="progress-card__info">
+                                            <h3 class="progress-card__title">#{progressBean.coursActuel.matiere}</h3>
+                                            <p class="progress-card__meta">
+                                                Salle #{progressBean.coursActuel.salle} · #{progressBean.coursActuel.typeCours}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="progress-bar-container">
+                                        <div class="progress-bar progress-bar--animated">
+                                            <div class="progress-bar__fill progress-bar__fill--green"
+                                                 style="width: #{progressBean.progressCoursActuel}%">
+                                                <div class="progress-bar__shine"></div>
+                                            </div>
+                                            <span class="progress-bar__label">#{progressBean.progressCoursActuel}%</span>
+                                        </div>
+                                        <div class="progress-stats">
+                                            <span class="progress-stats__item">
+                                                🕐 <h:outputText value="#{progressBean.coursActuel.timestampDebut.toLocalDateTime()}">
+                                                    <f:convertDateTime pattern="HH:mm" timeZone="Europe/Paris"/>
+                                                </h:outputText>
+                                                –
+                                                <h:outputText value="#{progressBean.coursActuel.timestampFin.toLocalDateTime()}">
+                                                    <f:convertDateTime pattern="HH:mm" timeZone="Europe/Paris"/>
+                                                </h:outputText>
+                                            </span>
+                                            <span class="progress-stats__item progress-stats__item--highlight">
+                                                ⏱️ #{progressBean.tempsRestantCoursActuel}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </h:panelGroup>
+
+                            <!-- Message si pas de cours -->
+                            <h:panelGroup rendered="#{progressBean.coursActuel == null}">
+                                <div class="empty-state">
+                                    <div class="empty-state__icon">💤</div>
+                                    <p class="empty-state__text">Aucun cours en ce moment</p>
+                                </div>
+                            </h:panelGroup>
+                        </div>
+                    </details>
+
+                    <!-- Section 2: Pause -->
+                    <details class="progress-section" open="open">
+                        <summary class="progress-section__header">
+                            <span class="progress-section__icon">☕</span>
+                            <span class="progress-section__title">Pause</span>
+                            <span class="progress-section__badge">
+                                <h:outputText value="En pause" rendered="#{progressBean.enPause}"/>
+                                <h:outputText value="Pas en pause" rendered="#{not progressBean.enPause}"/>
+                            </span>
+                        </summary>
+
+                        <div class="progress-section__content">
+                            <h:panelGroup rendered="#{progressBean.enPause}">
+                                <div class="progress-card progress-card--break">
+                                    <div class="progress-card__header">
+                                        <div class="progress-card__icon">🍵</div>
+                                        <div class="progress-card__info">
+                                            <h3 class="progress-card__title">Temps de pause</h3>
+                                            <p class="progress-card__meta">Rechargez vos batteries !</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="progress-bar-container">
+                                        <div class="progress-bar progress-bar--animated">
+                                            <div class="progress-bar__fill progress-bar__fill--orange"
+                                                 style="width: #{progressBean.progressPause}%">
+                                                <div class="progress-bar__shine"></div>
+                                            </div>
+                                            <span class="progress-bar__label">#{progressBean.progressPause}%</span>
+                                        </div>
+                                        <div class="progress-stats">
+                                            <span class="progress-stats__item">Pause</span>
+                                            <span class="progress-stats__item progress-stats__item--highlight">
+                                                ⏱️ #{progressBean.tempsRestantPause}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </h:panelGroup>
+
+                            <h:panelGroup rendered="#{not progressBean.enPause}">
+                                <div class="empty-state">
+                                    <div class="empty-state__icon">⏸️</div>
+                                    <p class="empty-state__text">Pas de pause en ce moment</p>
+                                </div>
+                            </h:panelGroup>
+                        </div>
+                    </details>
+
+                    <!-- Section 3: Bloc de Cours -->
+                    <details class="progress-section" open="open">
+                        <summary class="progress-section__header">
+                            <span class="progress-section__icon">📖</span>
+                            <span class="progress-section__title">Bloc de cours</span>
+                            <span class="progress-section__badge">
+                                <h:outputText value="#{progressBean.blocActuel.size()} séance(s)"
+                                              rendered="#{not progressBean.blocActuel.isEmpty()}"/>
+                                <h:outputText value="Aucun" rendered="#{progressBean.blocActuel.isEmpty()}"/>
+                            </span>
+                        </summary>
+
+                        <div class="progress-section__content">
+                            <h:panelGroup rendered="#{not progressBean.blocActuel.isEmpty()}">
+                                <div class="progress-card progress-card--block">
+                                    <div class="progress-card__header">
+                                        <div class="progress-card__icon">📚</div>
+                                        <div class="progress-card__info">
+                                            <h3 class="progress-card__title">#{progressBean.nomBloc}</h3>
+                                            <p class="progress-card__meta">
+                                                #{progressBean.blocActuel.size()} séance#{progressBean.blocActuel.size() gt 1 ? 's' : ''}
+                                                (avec pauses incluses)
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="progress-bar-container">
+                                        <div class="progress-bar progress-bar--animated">
+                                            <div class="progress-bar__fill progress-bar__fill--blue"
+                                                 style="width: #{progressBean.progressBloc}%">
+                                                <div class="progress-bar__shine"></div>
+                                            </div>
+                                            <span class="progress-bar__label">#{progressBean.progressBloc}%</span>
+                                        </div>
+                                        <div class="progress-stats">
+                                            <span class="progress-stats__item">
+                                                🕐 <h:outputText value="#{progressBean.blocActuel.get(0).timestampDebut.toLocalDateTime()}">
+                                                    <f:convertDateTime pattern="HH:mm" timeZone="Europe/Paris"/>
+                                                </h:outputText>
+                                                –
+                                                <h:outputText value="#{progressBean.blocActuel.get(progressBean.blocActuel.size()-1).timestampFin.toLocalDateTime()}">
+                                                    <f:convertDateTime pattern="HH:mm" timeZone="Europe/Paris"/>
+                                                </h:outputText>
+                                            </span>
+                                            <span class="progress-stats__item progress-stats__item--highlight">
+                                                ⏱️ #{progressBean.tempsRestantBloc}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Mini timeline du bloc -->
+                                    <div class="bloc-timeline">
+                                        <ui:repeat value="#{progressBean.blocActuel}" var="cours" varStatus="status">
+                                            <div class="bloc-timeline__item">
+                                                <span class="bloc-timeline__time">
+                                                    <h:outputText value="#{cours.timestampDebut.toLocalDateTime()}">
+                                                        <f:convertDateTime pattern="HH:mm" timeZone="Europe/Paris"/>
+                                                    </h:outputText>
+                                                </span>
+                                                <span class="bloc-timeline__dot"></span>
+                                                <span class="bloc-timeline__label">Séance #{status.index + 1}</span>
+                                            </div>
+                                        </ui:repeat>
+                                    </div>
+                                </div>
+                            </h:panelGroup>
+
+                            <h:panelGroup rendered="#{progressBean.blocActuel.isEmpty()}">
+                                <div class="empty-state">
+                                    <div class="empty-state__icon">📭</div>
+                                    <p class="empty-state__text">Aucun bloc de cours en ce moment</p>
+                                </div>
+                            </h:panelGroup>
+                        </div>
+                    </details>
+
+                    <!-- Section 4: Journée Complète -->
+                    <details class="progress-section" open="open">
+                        <summary class="progress-section__header">
+                            <span class="progress-section__icon">🌅</span>
+                            <span class="progress-section__title">Journée complète</span>
+                            <span class="progress-section__badge">
+                                #{progressBean.coursAujourdhui.size()} cours
+                            </span>
+                        </summary>
+
+                        <div class="progress-section__content">
+                            <div class="progress-card progress-card--day">
+                                <div class="progress-card__header">
+                                    <div class="progress-card__icon">📅</div>
+                                    <div class="progress-card__info">
+                                        <h3 class="progress-card__title">Progression de la journée</h3>
+                                        <p class="progress-card__meta">
+                                            Du premier au dernier cours
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar progress-bar--animated progress-bar--large">
+                                        <div class="progress-bar__fill progress-bar__fill--gradient"
+                                             style="width: #{progressBean.progressJournee}%">
+                                            <div class="progress-bar__shine"></div>
+                                        </div>
+                                        <span class="progress-bar__label progress-bar__label--large">
+                                            #{progressBean.progressJournee}%
+                                        </span>
+                                    </div>
+                                    <div class="progress-stats">
+                                        <span class="progress-stats__item">
+                                            🕐 <h:outputText value="#{progressBean.coursAujourdhui.get(0).timestampDebut.toLocalDateTime()}">
+                                                <f:convertDateTime pattern="HH:mm" timeZone="Europe/Paris"/>
+                                            </h:outputText>
+                                            –
+                                            <h:outputText value="#{progressBean.coursAujourdhui.get(progressBean.coursAujourdhui.size()-1).timestampFin.toLocalDateTime()}">
+                                                <f:convertDateTime pattern="HH:mm" timeZone="Europe/Paris"/>
+                                            </h:outputText>
+                                        </span>
+                                        <span class="progress-stats__item progress-stats__item--highlight progress-stats__item--large">
+                                            ⏱️ #{progressBean.tempsRestantJournee}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Résumé de la journée -->
+                                <div class="day-summary">
+                                    <div class="day-summary__item">
+                                        <span class="day-summary__value">#{progressBean.coursAujourdhui.size()}</span>
+                                        <span class="day-summary__label">cours</span>
+                                    </div>
+                                    <div class="day-summary__divider"></div>
+                                    <div class="day-summary__item">
+                                        <span class="day-summary__value">
+                                            <!-- Calcul approximatif des heures totales -->
+                                            ~8h
+                                        </span>
+                                        <span class="day-summary__label">d'enseignement</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <!-- Section 5: Stats Bonus (masquable) -->
+                    <details class="progress-section">
+                        <summary class="progress-section__header">
+                            <span class="progress-section__icon">📊</span>
+                            <span class="progress-section__title">Statistiques du jour</span>
+                            <span class="progress-section__badge">Bonus</span>
+                        </summary>
+
+                        <div class="progress-section__content">
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-card__icon">⏰</div>
+                                    <div class="stat-card__value">
+                                        <h:outputText value="#{progressBean.coursAujourdhui.get(0).timestampDebut.toLocalDateTime()}">
+                                            <f:convertDateTime pattern="HH:mm" timeZone="Europe/Paris"/>
+                                        </h:outputText>
+                                    </div>
+                                    <div class="stat-card__label">Premier cours</div>
+                                </div>
+
+                                <div class="stat-card">
+                                    <div class="stat-card__icon">🏁</div>
+                                    <div class="stat-card__value">
+                                        <h:outputText value="#{progressBean.coursAujourdhui.get(progressBean.coursAujourdhui.size()-1).timestampFin.toLocalDateTime()}">
+                                            <f:convertDateTime pattern="HH:mm" timeZone="Europe/Paris"/>
+                                        </h:outputText>
+                                    </div>
+                                    <div class="stat-card__label">Dernier cours</div>
+                                </div>
+
+                                <div class="stat-card">
+                                    <div class="stat-card__icon">📚</div>
+                                    <div class="stat-card__value">#{progressBean.coursAujourdhui.size()}</div>
+                                    <div class="stat-card__label">Cours total</div>
+                                </div>
+
+                                <div class="stat-card">
+                                    <div class="stat-card__icon">☕</div>
+                                    <div class="stat-card__value">
+                                        <!-- Calculer le nombre de pauses approximatif -->
+                                        ~#{progressBean.coursAujourdhui.size() - 1}
+                                    </div>
+                                    <div class="stat-card__label">Pauses</div>
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+
+                </div>
+
+                <!-- Hint de rafraîchissement -->
+                <div class="refresh-hint">
+                    <span class="refresh-hint__icon">🔄</span>
+                    Page rafraîchie automatiquement toutes les 30 secondes
+                </div>
+            </h:panelGroup>
+
+            <!-- Navigation -->
+            <div class="progress-nav">
+                <h:form>
+                    <h:commandButton value="← Retour au planning"
+                                     action="index?faces-redirect=true"
+                                     styleClass="btn btn--secondary"/>
+                    <h:commandButton value="🔄 Rafraîchir maintenant"
+                                     action="progress"
+                                     styleClass="btn btn--primary"/>
+                </h:form>
+            </div>
+        </div>
+    </ui:define>
+</ui:composition>
