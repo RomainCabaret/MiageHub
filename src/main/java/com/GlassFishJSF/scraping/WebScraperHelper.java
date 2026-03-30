@@ -16,7 +16,7 @@ public class WebScraperHelper {
                 const coursParJour = {};
                 
                 document.querySelectorAll(".EmploiDuTemps_Element").forEach((element) => {
-                  const title = element.querySelector(".cours-simple")?.getAttribute("title") || "Horaire inconnu";
+                  const title = element.querySelector(".cours-simple")?.querySelectorAll(".sr-only")[1]?.textContent || "Horaire inconnu";
                   const spans = Array.from(element.querySelectorAll(".contenu")).map(s => s.innerText.trim());
                   
                    if (!title) {
@@ -78,8 +78,7 @@ public class WebScraperHelper {
                   };
                 
                   // --- Date (on garde ton code de base intact) ---
-                  const spanDate = element.querySelector(".sr-only");
-                  const texteDate = spanDate?.innerText || "";
+                  const texteDate = title;
                   const regexDate = /Cours du (\\d{1,2}) ([A-Za-zÀ-ÖØ-öø-ÿ]+)/;
                   const match = texteDate.match(regexDate);
                   let cleJour = "Inconnu";

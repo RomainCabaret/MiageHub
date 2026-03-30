@@ -52,7 +52,7 @@ public class HyperplanningService {
 
 
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless=new");
+        //options.addArguments("--headless=new");
         options.addArguments("--disable-gpu");
         options.addArguments("--window-size=1920,901");
         options.addArguments("--remote-allow-origins=*");
@@ -60,6 +60,7 @@ public class HyperplanningService {
 //        // pour Ubuntu/serveur
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--display=:99"); // <--- IL MANQUE CETTE LIGNE ICI
 //
 //        String userDataDir = "/tmp/chrome-user-data-" + System.currentTimeMillis() + "-" + Thread.currentThread().getId();
 //        options.addArguments("--user-data-dir=" + userDataDir);
@@ -74,10 +75,11 @@ public class HyperplanningService {
             driver.get(TARGET_URL);
 
             // Sélection du groupe
-            wait.until(ExpectedConditions.elementToBeClickable(By.id("GInterface.Instances[1].Instances[0].bouton"))).click();
-            wait.until(ExpectedConditions.elementToBeClickable(By.id("GInterface.Instances[1].Instances[0]_1"))).click();
+            wait.until(ExpectedConditions.elementToBeClickable(By.id("IE.Identite.collection._2_btns_0"))).click();
+            wait.until(ExpectedConditions.elementToBeClickable(By.id("IE.Identite.collection._3.Instances[1].Instances[0].bouton"))).click();
+            wait.until(ExpectedConditions.elementToBeClickable(By.id("IE.Identite.collection._3.Instances[1].Instances[0]_1"))).click();
 
-            WebElement editInput = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("GInterface.Instances[1].Instances[1].bouton_Edit")));
+            WebElement editInput = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("IE.Identite.collection._3.Instances[1].Instances[1].bouton_Edit")));
             editInput.clear();
             editInput.sendKeys("M1ILWY142", Keys.ENTER);
             Thread.sleep(1500);
@@ -107,14 +109,21 @@ public class HyperplanningService {
 
                             // 🕓 Extrait uniquement les heures de début et de fin
                             String horaire = map.get("horaire"); // ex: "de 08h30 à 10h00 (01h30)"
+                            java.util.regex.Pattern p = java.util.regex.Pattern.compile("\\d+");
+                            java.util.regex.Matcher m = p.matcher(horaire);
+
+                            List<String> nombres = new ArrayList<>();
+                            while (m.find()) {
+                                nombres.add(m.group());
+                            }
 
                             String fullDateStr = jour + " " + horaire; // "22 avril de 08h30 à 10h00 (01h30)"
                             String[] dateParts =  fullDateStr.split(" ");
 
                             String day = dateParts[0];
                             String monthName =  dateParts[1];
-                            String timeStart = dateParts[3];
-                            String timeEnd = dateParts[5];
+                            String timeStart = nombres.get(1) + ":" + nombres.get(2) + ":00";
+                            String timeEnd = nombres.get(3) + ":" + nombres.get(4) + ":00";
 
 
                             Map<String, String> monthMap = Map.ofEntries(
@@ -239,7 +248,11 @@ public class HyperplanningService {
 //        options.addArguments("--headless=new"); // Headless = pas d'interface graphique
         options.addArguments("--disable-gpu");
         options.addArguments("--window-size=1920,901");
-        options.addArguments("--remote-allow-origins=*"); // utile parfois
+        options.addArguments("--remote-allow-origins=*");
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+
+        options.addArguments("--display=:99");
 
         WebDriver driver = new ChromeDriver(options);
 
