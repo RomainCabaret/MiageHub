@@ -52,7 +52,7 @@ public class HyperplanningService {
 
 
         ChromeOptions options = new ChromeOptions();
-        //options.addArguments("--headless=new");
+        options.addArguments("--headless=new");
         options.addArguments("--disable-gpu");
         options.addArguments("--window-size=1920,901");
         options.addArguments("--remote-allow-origins=*");
@@ -60,7 +60,6 @@ public class HyperplanningService {
 //        // pour Ubuntu/serveur
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
-        options.addArguments("--display=:99"); // <--- IL MANQUE CETTE LIGNE ICI
 //
 //        String userDataDir = "/tmp/chrome-user-data-" + System.currentTimeMillis() + "-" + Thread.currentThread().getId();
 //        options.addArguments("--user-data-dir=" + userDataDir);
@@ -219,83 +218,5 @@ public class HyperplanningService {
         }
 
         return coursList;
-    }
-
-
-    public Map<String, List<Map<String, String>>> getPlanningForDate(LocalDate dateSouhaitee) {
-
-        System.out.println("on rentre " + dateSouhaitee.toString());
-
-
-        ChromeOptions options = new ChromeOptions();
-      options.addArguments("--headless=new"); // Headless = pas d'interface graphique
-        options.addArguments("--no-sandbox");
-        options.addArguments("--disable-dev-shm-usage");
-        options.addArguments("--disable-gpu");
-        options.addArguments("--window-size=1920,901");
-        options.addArguments("--remote-allow-origins=*");
-
-        //options.addArguments("--display=:99");
-
-        WebDriver driver = new ChromeDriver(options);
-
-        System.out.println("Driver crée  ");
-
-
-        try {
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
-            JavascriptExecutor js = (JavascriptExecutor) driver;
-            System.out.println("Driver instantier ");
-
-            driver.get(TARGET_URL);
-
-            System.out.println("Connecté !");
-
-
-            wait.until(ExpectedConditions.elementToBeClickable(By.id("GInterface.Instances[1].Instances[0].bouton"))).click();
-            wait.until(ExpectedConditions.elementToBeClickable(By.id("GInterface.Instances[1].Instances[0]_1"))).click();
-
-            WebElement editInput = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("GInterface.Instances[1].Instances[1].bouton_Edit")));
-            editInput.clear();
-            editInput.sendKeys("L3MIAX132", Keys.ENTER);
-
-            System.out.println("encore : " + editInput.getAttribute("value"));
-
-            Thread.sleep(1500);
-
-            String idSemaine = SemaineHelper.getIdSemaineFromDate(dateSouhaitee);
-            System.out.println("➡️ Semaine " + dateSouhaitee + " - Tentative de clic sur " + idSemaine);
-
-            boolean succesClic = false;
-            for (int tentative = 1; tentative <= 5; tentative++) {
-                try {
-                    WebElement btn = driver.findElement(By.id(idSemaine));
-
-                    btn.click();
-
-                    succesClic = true;
-                    break;
-                } catch (Exception e) {
-                    System.out.println("⏳ Tentative " + tentative + "/5 : Bouton bloqué (overlay), nouvel essai dans 1s...");
-                    Thread.sleep(1000);
-                }
-            }
-
-            if (!succesClic) {
-                throw new Exception("❌ Échec critique : Impossible de cliquer sur la semaine " + dateSouhaitee + " après 5 tentatives.");
-            }
-
-            Thread.sleep(2000);
-
-            Thread.sleep(1000);
-
-            return WebScraperHelper.extractCoursParJour(driver);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        } finally {
-            driver.quit();
-        }
     }
 }
