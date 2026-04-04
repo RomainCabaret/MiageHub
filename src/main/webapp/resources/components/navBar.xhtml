@@ -1,0 +1,61 @@
+<ui:component xmlns="http://www.w3.org/1999/xhtml"
+              xmlns:h="jakarta.faces.html"
+              xmlns:cc="jakarta.faces.composite"
+              xmlns:ui="jakarta.faces.facelets">
+
+    <cc:interface>
+        <cc:attribute name="activePage" default="progres" />
+    </cc:interface>
+
+    <cc:implementation>
+        <h:outputStylesheet library="css" name="nav.css" />
+
+        <!-- NAV MOBILE (FOOTER) -->
+        <nav class="mobile-nav">
+            <h:link outcome="/index.xhtml" styleClass="nav-item-mobile #{cc.attrs.activePage == 'agenda' ? 'active' : ''}">
+                <span class="icon">📅</span>
+                <span>Planning</span>
+            </h:link>
+
+            <h:link outcome="/login.xhtml" styleClass="nav-item-mobile #{cc.attrs.activePage == 'drive' ? 'active' : ''}">
+                <span class="icon">📟</span>
+                <span>Drive</span>
+            </h:link>
+
+
+<!--            &lt;!&ndash; Profil désactivé mais présent pour le design &ndash;&gt;-->
+<!--            <div class="nav-item-mobile" style="opacity: 0.5;">-->
+<!--                <span class="icon">🛡️</span>-->
+<!--                <span>Profil</span>-->
+<!--            </div>-->
+
+            <h:link outcome="/progress.xhtml" styleClass="nav-item-mobile #{cc.attrs.activePage == 'progres' ? 'active' : ''}">
+                <span class="icon">↪️</span>
+                <span>Progrès</span>
+            </h:link>
+        </nav>
+
+        <!-- SIDEBAR DESKTOP -->
+        <aside class="sidebar">
+            <div class="nav-logo">MIAGEHUB</div>
+            <div class="nav-section-title">MON ESPACE</div>
+
+            <h:link outcome="/index.xhtml" styleClass="nav-item #{cc.attrs.activePage == 'agenda' ? 'active' : ''}">
+                <span class="icon">📅</span> Emploi du temps
+            </h:link>
+
+            <h:link outcome="/login.xhtml" styleClass="nav-item #{cc.attrs.activePage == 'drive' ? 'active' : ''}">
+                <span class="icon">📁</span> Drive
+            </h:link>
+
+
+<!--            <div class="nav-item disabled" style="opacity: 0.3;">-->
+<!--                <span class="icon">👤</span> Profil-->
+<!--            </div>-->
+
+            <h:link outcome="/progress.xhtml" styleClass="nav-item #{cc.attrs.activePage == 'progres' ? 'active' : ''}">
+                <span class="icon">📈</span> Progrès
+            </h:link>
+        </aside>
+    </cc:implementation>
+</ui:component>

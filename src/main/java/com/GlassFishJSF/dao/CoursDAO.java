@@ -45,4 +45,18 @@ public class CoursDAO {
             throw e;
         }
     }
+
+    public List<Cours> findByPeriod(LocalDate start, LocalDate end) {
+        return em.createQuery(
+                        "SELECT c FROM Cours c WHERE c.date >= :start AND c.date <= :end ORDER BY c.date, c.timestampDebut",
+                        Cours.class)
+                .setParameter("start", java.sql.Date.valueOf(start))
+                .setParameter("end", java.sql.Date.valueOf(end))
+                .getResultList();
+    }
+
+    public List<Cours> findByDate(LocalDate date) {
+        return findByPeriod(date, date);
+    }
+
 }

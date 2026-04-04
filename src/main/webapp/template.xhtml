@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="fr" xmlns="http://www.w3.org/1999/xhtml"
       xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
-      xmlns:h="http://xmlns.jcp.org/jsf/html">
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:comp="jakarta.faces.composite/components"
+>
 <h:head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="shortcut icon" href="#{resource['images/favicon.ico']}"/>
@@ -12,6 +14,9 @@
 </h:head>
 
 <h:body>
+    <ui:insert name="activePageParam">
+        <comp:navBar activePage="agenda" />
+    </ui:insert>
     <div class="app-container">
         <main>
             <ui:insert name="content"/>

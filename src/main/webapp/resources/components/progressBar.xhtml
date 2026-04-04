@@ -1,0 +1,36 @@
+<ui:component xmlns="http://www.w3.org/1999/xhtml"
+              xmlns:h="http://xmlns.jcp.org/jsf/html"
+              xmlns:cc="http://xmlns.jcp.org/jsf/composite"
+              xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+              xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+              xmlns:f="jakarta.faces.core"
+              xmlns:pt="jakarta.faces.passthrough"
+              >
+    <cc:interface>
+        <cc:attribute name="label" required="true" />
+        <cc:attribute name="startTime" required="true" />
+        <cc:attribute name="endTime" required="true" />
+        <cc:attribute name="type" default="minutes" />
+        <cc:attribute name="hexColor" default="#60a5fa" />
+    </cc:interface>
+
+    <cc:implementation>
+        <h:panelGroup layout="block"
+                      styleClass="dash-card js-progress-container"
+                      pt:data-start="#{cc.attrs.startTime}"
+                      pt:data-end="#{cc.attrs.endTime}"
+                      pt:data-type="#{cc.attrs.type}">
+
+            <div class="card-header">
+                <span class="card-label">#{cc.attrs.label}</span>
+                <span class="card-value js-timer-label">Calcul...</span>
+            </div>
+
+            <div class="progress-track">
+                <div class="progress-fill js-progress-fill"
+                     style="width: 0%; background-color: #{cc.attrs.hexColor}; box-shadow: 0 0 10px #{cc.attrs.hexColor}bb;">
+                </div>
+            </div>
+        </h:panelGroup>
+    </cc:implementation>
+</ui:component>
