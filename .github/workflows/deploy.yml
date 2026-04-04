@@ -41,9 +41,12 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
+            echo "AS_ADMIN_PASSWORD=${{ secrets.GLASSFISH_ADMIN_PASSWORD }}" > /tmp/glassfish_pwd
+            
             WAR_PATH=$(ls /tmp/*.war | head -n 1)
             
-            ${{ secrets.GLASSFISH_PATH }} deploy --force=true --name GlassFishJSF $WAR_PATH
+            ${{ secrets.GLASSFISH_PATH }} --user admin --passwordfile /tmp/glassfish_pwd --port ${{ secrets.GLASSFISH_ADMIN_PORT }} deploy --force=true --name GlassFishJSF $WAR_PATH
             
-            # Nettoyage du fichier temporaire
+            # Nettoyage 
             rm $WAR_PATH
+            rm /tmp/glassfish_pwd
