@@ -28,8 +28,9 @@ jobs:
           host: ${{ secrets.VPS_IP }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
           source: "target/*.war"
-          target: "/tmp/"
+          target: "/tmp"
           strip_components: 1
 
       - name: Deploy to GlassFish via SSH
@@ -38,6 +39,7 @@ jobs:
           host: ${{ secrets.VPS_IP }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
           script: |
             WAR_PATH=$(ls /tmp/*.war | head -n 1)
             
