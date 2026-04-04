@@ -228,14 +228,14 @@ public class HyperplanningService {
 
 
         ChromeOptions options = new ChromeOptions();
-//        options.addArguments("--headless=new"); // Headless = pas d'interface graphique
+      options.addArguments("--headless=new"); // Headless = pas d'interface graphique
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
         options.addArguments("--disable-gpu");
         options.addArguments("--window-size=1920,901");
         options.addArguments("--remote-allow-origins=*");
-        options.addArguments("--no-sandbox");
-        options.addArguments("--disable-dev-shm-usage");
 
-        options.addArguments("--display=:99");
+        //options.addArguments("--display=:99");
 
         WebDriver driver = new ChromeDriver(options);
 
