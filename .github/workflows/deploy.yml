@@ -1,0 +1,47 @@
+name: CD GlassFish
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+
+      - name: Copy WAR to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "target/*.war"
+          target: "/tmp/"
+          strip_components: 1
+
+      - name: Deploy to GlassFish via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            WAR_PATH=$(ls /tmp/*.war | head -n 1)
+            
+            ${{ secrets.GLASSFISH_PATH }} deploy --force=true --name GlassFishJSF $WAR_PATH
+            
+            # Nettoyage du fichier temporaire
+            rm $WAR_PATH

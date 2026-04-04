@@ -66,7 +66,6 @@ public class HyperplanningService {
 //        options.addArguments("--user-data-dir=" + userDataDir);
 
 
-
         WebDriver driver = new ChromeDriver(options);
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
         JavascriptExecutor js = (JavascriptExecutor) driver;
@@ -118,28 +117,15 @@ public class HyperplanningService {
                             }
 
                             String fullDateStr = jour + " " + horaire; // "22 avril de 08h30 à 10h00 (01h30)"
-                            String[] dateParts =  fullDateStr.split(" ");
+                            String[] dateParts = fullDateStr.split(" ");
 
                             String day = dateParts[0];
-                            String monthName =  dateParts[1];
+                            String monthName = dateParts[1];
                             String timeStart = nombres.get(1) + ":" + nombres.get(2) + ":00";
                             String timeEnd = nombres.get(3) + ":" + nombres.get(4) + ":00";
 
 
-                            Map<String, String> monthMap = Map.ofEntries(
-                                    Map.entry("janvier", "01"),
-                                    Map.entry("février", "02"),
-                                    Map.entry("mars", "03"),
-                                    Map.entry("avril", "04"),
-                                    Map.entry("mai", "05"),
-                                    Map.entry("juin", "06"),
-                                    Map.entry("juillet", "07"),
-                                    Map.entry("août", "08"),
-                                    Map.entry("septembre", "09"),
-                                    Map.entry("octobre", "10"),
-                                    Map.entry("novembre", "11"),
-                                    Map.entry("décembre", "12")
-                            );
+                            Map<String, String> monthMap = Map.ofEntries(Map.entry("janvier", "01"), Map.entry("février", "02"), Map.entry("mars", "03"), Map.entry("avril", "04"), Map.entry("mai", "05"), Map.entry("juin", "06"), Map.entry("juillet", "07"), Map.entry("août", "08"), Map.entry("septembre", "09"), Map.entry("octobre", "10"), Map.entry("novembre", "11"), Map.entry("décembre", "12"));
 
 
                             String monthNum = monthMap.get(monthName.toLowerCase());
@@ -178,8 +164,6 @@ public class HyperplanningService {
                             log.append("Date utilisée      : ").append(dateStr).append("\n");
                             log.append("→ Timestamp début  : ").append(timestampStart).append("\n");
                             log.append("→ Timestamp fin    : ").append(timestampEnd).append("\n");
-
-
 
 
                             log.append("\n===== FIN DU LOG =====");
@@ -238,10 +222,9 @@ public class HyperplanningService {
     }
 
 
-
     public Map<String, List<Map<String, String>>> getPlanningForDate(LocalDate dateSouhaitee) {
 
-        System.out.println("on rentre " +  dateSouhaitee.toString());
+        System.out.println("on rentre " + dateSouhaitee.toString());
 
 
         ChromeOptions options = new ChromeOptions();
@@ -276,14 +259,33 @@ public class HyperplanningService {
             editInput.clear();
             editInput.sendKeys("L3MIAX132", Keys.ENTER);
 
-            System.out.println("encore : "  +editInput.getAttribute("value"));
+            System.out.println("encore : " + editInput.getAttribute("value"));
 
             Thread.sleep(1500);
 
             String idSemaine = SemaineHelper.getIdSemaineFromDate(dateSouhaitee);
-            WebElement boutonSemaine = wait.until(ExpectedConditions.elementToBeClickable(By.id(idSemaine)));
-            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", boutonSemaine);
-            boutonSemaine.click();
+            System.out.println("➡️ Semaine " + dateSouhaitee + " - Tentative de clic sur " + idSemaine);
+
+            boolean succesClic = false;
+            for (int tentative = 1; tentative <= 5; tentative++) {
+                try {
+                    WebElement btn = driver.findElement(By.id(idSemaine));
+
+                    btn.click();
+
+                    succesClic = true;
+                    break;
+                } catch (Exception e) {
+                    System.out.println("⏳ Tentative " + tentative + "/5 : Bouton bloqué (overlay), nouvel essai dans 1s...");
+                    Thread.sleep(1000);
+                }
+            }
+
+            if (!succesClic) {
+                throw new Exception("❌ Échec critique : Impossible de cliquer sur la semaine " + dateSouhaitee + " après 5 tentatives.");
+            }
+
+            Thread.sleep(2000);
 
             Thread.sleep(1000);
 

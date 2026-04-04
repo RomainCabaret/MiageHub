@@ -16,7 +16,7 @@ public class WebScraperHelper {
                 const coursParJour = {};
                 
                 document.querySelectorAll(".EmploiDuTemps_Element").forEach((element) => {
-                  const title = element.querySelector(".cours-simple")?.querySelectorAll(".sr-only")[1]?.textContent || "Horaire inconnu";
+                  const title = element.querySelector(".cours-simple")?.getAttribute("aria-label") || "Horaire inconnu";
                   const spans = Array.from(element.querySelectorAll(".contenu")).map(s => s.innerText.trim());
                   
                    if (!title) {
