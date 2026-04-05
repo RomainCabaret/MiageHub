@@ -14,13 +14,14 @@
 </h:head>
 
 <h:body>
-    <ui:insert name="activePageParam">
-        <comp:navBar activePage="agenda" />
-    </ui:insert>
+
     <div class="app-container">
         <main>
             <ui:insert name="content"/>
         </main>
     </div>
+    <ui:insert name="activePageParam">
+        <comp:navBar activePage="agenda" />
+    </ui:insert>
 </h:body>
 </html>
