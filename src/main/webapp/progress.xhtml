@@ -36,13 +36,49 @@
         <h:panelGroup id="chronoGrid" layout="block" styleClass="dash-grid">
             <div class="section-sep">Test de progression</div>
 
-            <comp:progressBar label="Chrono 60 secondes"
-                              startTime="#{progressBean.startTime}"
-                              endTime="#{progressBean.endTime}"
-                              type="secondes"
-                              hexColor="#c84bff" />
+            <comp:progressBar label="#{progressBean.minuteBar.label}"
+                              startTime="#{progressBean.minuteBar.startTime}"
+                              endTime="#{progressBean.minuteBar.endTime}"
+                              hexColor="#c84bff"
+                              rendered="#{progressBean.minuteBar.active}" />
 
-            <div class="section-sep">Fun</div>
+            <comp:progressBar label="#{progressBean.hourBar.label}"
+                              startTime="#{progressBean.hourBar.startTime}"
+                              endTime="#{progressBean.hourBar.endTime}"
+                              hexColor="#ffd700" />
+
+            <comp:progressBar label="#{progressBean.monthBar.label}"
+                              startTime="#{progressBean.monthBar.startTime}"
+                              endTime="#{progressBean.monthBar.endTime}"
+                              hexColor="#00f5d4" />
+
+            <comp:progressBar label="#{progressBean.yearBar.label}"
+                              startTime="#{progressBean.yearBar.startTime}"
+                              endTime="#{progressBean.yearBar.endTime}"
+                              hexColor="#f97316" />
+
+            <comp:progressBar label="#{progressBean.centuryBar.label}"
+                              startTime="#{progressBean.centuryBar.startTime}"
+                              endTime="#{progressBean.centuryBar.endTime}"
+                              hexColor="#d4af37" />
+
+            <div class="section-sep">EXAMEN</div>
+
+            <ui:remove>PROGRESS BAR PROCHAIN EXAMEN</ui:remove>
+            <comp:progressBar label="#{progressBean.examBar.label}"
+                              startTime="#{progressBean.examBar.startTime}"
+                              endTime="#{progressBean.examBar.endTime}"
+                              hexColor="#ff416c"
+                              rendered="#{progressBean.examBar.active}" />
+
+            <ui:remove>PROGRESS BAR DERNIER EXAMEN</ui:remove>
+            <comp:progressBar label="#{progressBean.sessionBar.label}"
+                              startTime="#{progressBean.sessionBar.startTime}"
+                              endTime="#{progressBean.sessionBar.endTime}"
+                              hexColor="#a855f7"
+                              rendered="#{progressBean.sessionBar.active}" />
+
+
 
         </h:panelGroup>
 

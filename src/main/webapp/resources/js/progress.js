@@ -1,38 +1,25 @@
 (function() {
-    console.log("🚀 Script progress.js chargé et démarré !");
-    let isRefreshing = false; // Anti-boucle infinie
+    let isRefreshing = false;
+
+    const formatTime = (ms) => {
+        const s = Math.floor(ms / 1000);
+        const m = Math.floor(s / 60);
+        const h = Math.floor(m / 60);
+        const d = Math.floor(h / 24);
+
+        if (d > 0) return `${d}j ${h % 24}h`;
+        if (h > 0) return `${h}h ${m % 60}m`;
+        if (m > 0) return `${m}m ${s % 60}s`;
+        return `${s}s`;
+    };
 
     const updateProgress = () => {
         const now = Date.now();
         const containers = document.querySelectorAll('.js-progress-container');
 
-        if (containers.length === 0) {
-            console.warn("⚠️ Aucun élément '.js-progress-container' trouvé dans le DOM.");
-            return;
-        }
-
-        containers.forEach((container, index) => {
-            const startAttr = container.getAttribute('data-start');
-            const endAttr = container.getAttribute('data-end');
-            const label = container.querySelector('.card-label')?.textContent;
-
-            console.log(`📊 [Barre ${index}] ${label} | start: ${startAttr} | end: ${endAttr}`);
-
-
-            if (!startAttr || !endAttr) {
-                console.error(`❌ Données manquantes pour la barre ${index}`);
-                return;
-            }
-
-            const start = Number(startAttr.replace(/\s/g, ''));
-            const end = Number(endAttr.replace(/\s/g, ''));
-
-
-
-            if (isNaN(start) || isNaN(end)) {
-                console.error(`❌ Erreur de conversion Numérique : start=${start}, end=${end}`);
-                return;
-            }
+        containers.forEach((container) => {
+            const start = Number(container.getAttribute('data-start').replace(/\s/g, ''));
+            const end = Number(container.getAttribute('data-end').replace(/\s/g, ''));
 
             const totalMs = end - start;
             const elapsedMs = now - start;
@@ -40,31 +27,26 @@
 
             if (remainingMs <= 0 && !isRefreshing) {
                 isRefreshing = true;
-                console.log("🔄 Fin du chrono, demande de rafraîchissement...");
-
                 if (typeof triggerRefresh === "function") {
                     triggerRefresh();
-
                     setTimeout(() => { isRefreshing = false; }, 2000);
                 }
                 return;
             }
 
-
-
-            let percent = (elapsedMs / totalMs) * 100;
-            percent = Math.min(100, Math.max(0, percent));
+            const percent = Math.min(100, Math.max(0, (elapsedMs / totalMs) * 100));
+            const percentDisplay = percent.toFixed(2);
 
             const fill = container.querySelector('.js-progress-fill');
             const timerLabel = container.querySelector('.js-timer-label');
 
-            if (fill) fill.style.width = percent.toFixed(2) + '%';
+            if (fill) fill.style.width = percentDisplay + '%';
             if (timerLabel) {
                 if (remainingMs <= 0) {
-                    timerLabel.textContent = "Terminé";
+                    timerLabel.textContent = "(100%) Terminé";
                 } else {
-                    const diffSec = Math.floor(remainingMs / 1000);
-                    timerLabel.textContent = `${diffSec}s restantes`;
+                    const formattedTime = formatTime(remainingMs);
+                    timerLabel.textContent = `(${percentDisplay}%) ${formattedTime} restant`;
                 }
             }
         });

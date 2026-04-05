@@ -10,16 +10,16 @@
         <cc:attribute name="label" required="true" />
         <cc:attribute name="startTime" required="true" />
         <cc:attribute name="endTime" required="true" />
-        <cc:attribute name="type" default="minutes" />
         <cc:attribute name="hexColor" default="#60a5fa" />
+        <cc:attribute name="rendered" default="true" />
     </cc:interface>
 
     <cc:implementation>
         <h:panelGroup layout="block"
+                      rendered="#{cc.attrs.rendered}"
                       styleClass="dash-card js-progress-container"
                       pt:data-start="#{cc.attrs.startTime}"
-                      pt:data-end="#{cc.attrs.endTime}"
-                      pt:data-type="#{cc.attrs.type}">
+                      pt:data-end="#{cc.attrs.endTime}">
 
             <div class="card-header">
                 <span class="card-label">#{cc.attrs.label}</span>

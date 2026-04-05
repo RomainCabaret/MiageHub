@@ -2,14 +2,14 @@ package com.GlassFishJSF.dao;
 
 import com.GlassFishJSF.model.Cours;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 @ApplicationScoped
 public class CoursDAO {
@@ -59,4 +59,47 @@ public class CoursDAO {
         return findByPeriod(date, date);
     }
 
+    public Map<String, Cours> findLastAndNextExam() {
+        Map<String, Cours> context = new HashMap<>();
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+
+        List<Cours> pastExams = em.createQuery(
+                        "SELECT c FROM Cours c WHERE c.typeCours = 'EXAMEN' AND c.timestampDebut < :now " +
+                                "ORDER BY c.timestampDebut DESC", Cours.class)
+                .setParameter("now", now)
+                .setMaxResults(1)
+                .getResultList();
+
+        List<Cours> futureExams = em.createQuery(
+                        "SELECT c FROM Cours c WHERE c.typeCours = 'EXAMEN' AND c.timestampDebut >= :now " +
+                                "ORDER BY c.timestampDebut ASC", Cours.class)
+                .setParameter("now", now)
+                .setMaxResults(1)
+                .getResultList();
+
+        if (!pastExams.isEmpty()) context.put("last", pastExams.get(0));
+        if (!futureExams.isEmpty()) context.put("next", futureExams.get(0));
+
+        return context;
+    }
+
+    public Map<String, Cours> findFirstAndLastExam() {
+        Map<String, Cours> boundaries = new HashMap<>();
+
+        List<Cours> first = em.createQuery(
+                        "SELECT c FROM Cours c WHERE c.typeCours = 'EXAMEN' ORDER BY c.timestampFin ASC", Cours.class)
+                .setMaxResults(1)
+                .getResultList();
+
+        // On récupère le tout dernier examen (le plus lointain)
+        List<Cours> last = em.createQuery(
+                        "SELECT c FROM Cours c WHERE c.typeCours = 'EXAMEN' ORDER BY c.timestampDebut DESC", Cours.class)
+                .setMaxResults(1)
+                .getResultList();
+
+        if (!first.isEmpty()) boundaries.put("first", first.get(0));
+        if (!last.isEmpty()) boundaries.put("last", last.get(0));
+
+        return boundaries;
+    }
 }

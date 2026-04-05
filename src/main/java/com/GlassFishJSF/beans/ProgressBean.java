@@ -1,39 +1,32 @@
 package com.GlassFishJSF.beans;
 
-import com.GlassFishJSF.dao.CoursDAO;
-import com.GlassFishJSF.model.Cours;
-import com.GlassFishJSF.service.CoursService;
+import com.GlassFishJSF.dto.ProgressDTO;
+import com.GlassFishJSF.service.ProgressService;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-
 import java.io.Serializable;
-import java.sql.Timestamp;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Named
 @ApplicationScoped
 public class ProgressBean implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-
     @Inject
-    private CoursDAO coursDAO;
-
-    @Inject
-    private CoursService coursService;
+    private ProgressService progressService;
 
 
-    private long startTime;
-    private long endTime;
+    // ------ TIME BAR -------
+    private ProgressDTO minuteBar;
+    private ProgressDTO hourBar;
+    private ProgressDTO monthBar;
+    private ProgressDTO yearBar;
+    private ProgressDTO centuryBar;
+
+    // ------ EXAMEN BAR -------
+    private ProgressDTO examBar;
+    private ProgressDTO sessionBar;
+
 
     @PostConstruct
     public void init() {
@@ -41,25 +34,26 @@ public class ProgressBean implements Serializable {
     }
 
     public void updateTimestamps() {
-        LocalDateTime now = LocalDateTime.now();
 
-        this.startTime = now.withSecond(0).withNano(0)
-                .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        // ------ TIME BAR -------
+        this.minuteBar = progressService.calculateMinuteProgress();
+        this.hourBar = progressService.calculateHourProgress();
+        this.monthBar = progressService.calculateMonthProgress();
+        this.yearBar = progressService.calculateYearProgress();
+        this.centuryBar = progressService.calculateCenturyProgress();
 
-        this.endTime = now.withSecond(0).withNano(0).plusMinutes(1)
-                .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-
-        System.out.println("🔄 Nouveaux Timestamps générés : " + startTime + " -> " + endTime);
+        // ------ EXAMEN BAR -------
+        this.examBar = progressService.calculateExamInterval();
+        this.sessionBar = progressService.calculateGlobalSession();
     }
 
-    public long getStartTime() {
-        return startTime;
-
-    }
-
-    public long getEndTime() {
-        return endTime;
-    }
-
+    // Getters
+    public ProgressDTO getHourBar() {return hourBar;}
+    public ProgressDTO getMonthBar() {return monthBar;}
+    public ProgressDTO getYearBar() {return yearBar;}
+    public ProgressDTO getCenturyBar() {return centuryBar;}
+    public ProgressDTO getExamBar() { return examBar; }
+    public ProgressDTO getSessionBar() { return sessionBar; }
+    public ProgressDTO getMinuteBar() { return minuteBar; }
 
 }
