@@ -32,9 +32,8 @@
         </header>
 
 
-        <!-- ── Grille principale ───────────────────────────────────────── -->
         <h:panelGroup id="chronoGrid" layout="block" styleClass="dash-grid">
-            <div class="section-sep">Test de progression</div>
+            <div class="section-sep">HORAIRE</div>
 
             <comp:progressBar label="#{progressBean.minuteBar.label}"
                               startTime="#{progressBean.minuteBar.startTime}"
@@ -64,24 +63,60 @@
 
             <div class="section-sep">EXAMEN</div>
 
-            <ui:remove>PROGRESS BAR PROCHAIN EXAMEN</ui:remove>
             <comp:progressBar label="#{progressBean.examBar.label}"
                               startTime="#{progressBean.examBar.startTime}"
                               endTime="#{progressBean.examBar.endTime}"
                               hexColor="#ff416c"
                               rendered="#{progressBean.examBar.active}" />
 
-            <ui:remove>PROGRESS BAR DERNIER EXAMEN</ui:remove>
             <comp:progressBar label="#{progressBean.sessionBar.label}"
                               startTime="#{progressBean.sessionBar.startTime}"
                               endTime="#{progressBean.sessionBar.endTime}"
-                              hexColor="#a855f7"
+                              hexColor="#ec4899"
                               rendered="#{progressBean.sessionBar.active}" />
 
+            <div class="section-sep">MASTER MIAGE</div>
 
+            <comp:progressBar label="#{progressBean.endingMasterBar.label}"
+                              startTime="#{progressBean.endingMasterBar.startTime}"
+                              endTime="#{progressBean.endingMasterBar.endTime}"
+                              hexColor="#6366f1"
+                              rendered="#{progressBean.endingMasterBar.active}" />
 
+            <comp:progressBar label="#{progressBean.nextItNight.label}"
+                              startTime="#{progressBean.nextItNight.startTime}"
+                              endTime="#{progressBean.nextItNight.endTime}"
+                              hexColor="#2563eb"
+                              rendered="#{progressBean.nextItNight.active}" />
+
+            <comp:progressBar label="#{progressBean.nextBigEvent.label}"
+                              startTime="#{progressBean.nextBigEvent.startTime}"
+                              endTime="#{progressBean.nextBigEvent.endTime}"
+                              hexColor="#10b981"
+                              rendered="#{progressBean.nextBigEvent.active}" />
+
+<!--            <comp:progressBar label="#{progressBean.nextCompanyProgress.label}"-->
+<!--                              startTime="#{progressBean.nextCompanyProgress.startTime}"-->
+<!--                              endTime="#{progressBean.nextCompanyProgress.endTime}"-->
+<!--                              hexColor="#8b5cf6"-->
+<!--                              rendered="#{progressBean.nextCompanyProgress.active}" />-->
+
+            <div class="section-sep">CFA</div>
+
+            <comp:progressBar label="#{progressBean.nextIziaForm.label}"
+                              startTime="#{progressBean.nextIziaForm.startTime}"
+                              endTime="#{progressBean.nextIziaForm.endTime}"
+                              hexColor="#06b6d4"
+                              rendered="#{progressBean.nextIziaForm.active}" />
+
+            <div class="section-sep">INSOLITE</div>
+
+            <comp:progressBar label="#{progressBean.nextSolarEclipse.label}"
+                              startTime="#{progressBean.nextSolarEclipse.startTime}"
+                              endTime="#{progressBean.nextSolarEclipse.endTime}"
+                              hexColor="#64748b"
+                              rendered="#{progressBean.nextSolarEclipse.active}" />
         </h:panelGroup>
-
 
         <h:outputScript library="js" name="progress.js" target="body"/>
 

@@ -27,6 +27,20 @@ public class ProgressBean implements Serializable {
     private ProgressDTO examBar;
     private ProgressDTO sessionBar;
 
+    // ------ MASTER BAR ------
+    private ProgressDTO endingMasterBar;
+    private ProgressDTO nextItNight;
+    private ProgressDTO nextBigEvent;
+    private ProgressDTO nextCompanyProgress;
+
+    // ------ CFA BAR ------
+    private ProgressDTO nextIziaForm;
+
+    // ------ INSOLITE BAR ------
+    private ProgressDTO nextSolarEclipse;
+
+
+
 
     @PostConstruct
     public void init() {
@@ -45,6 +59,20 @@ public class ProgressBean implements Serializable {
         // ------ EXAMEN BAR -------
         this.examBar = progressService.calculateExamInterval();
         this.sessionBar = progressService.calculateGlobalSession();
+
+        // ------ MASTER BAR ------
+        this.endingMasterBar = progressService.calculateEndingMasterProgress();
+        this.nextItNight = progressService.calculateNextITNight();
+        this.nextBigEvent = progressService.calculateNextBigEvent();
+        this.nextCompanyProgress = progressService.calculateNextCompanyProgress();
+
+        // ------ CFA BAR ------
+        this.nextIziaForm = progressService.calculateNextIziaFormProgress();
+
+        // ------ INSOLITE BAR ------
+        this.nextSolarEclipse = progressService.calculateNextSolarEclipse();
+
+
     }
 
     // Getters
@@ -55,5 +83,12 @@ public class ProgressBean implements Serializable {
     public ProgressDTO getExamBar() { return examBar; }
     public ProgressDTO getSessionBar() { return sessionBar; }
     public ProgressDTO getMinuteBar() { return minuteBar; }
+    public ProgressDTO getEndingMasterBar() {return endingMasterBar; }
+    public ProgressDTO getNextItNight() {return nextItNight; }
+    public ProgressDTO getNextBigEvent() {return nextBigEvent; }
+    public ProgressDTO getNextIziaForm() {return nextIziaForm; }
+    public ProgressDTO getNextSolarEclipse() {return nextSolarEclipse; }
+    public  ProgressDTO getNextCompanyProgress() {return nextCompanyProgress; }
+
 
 }

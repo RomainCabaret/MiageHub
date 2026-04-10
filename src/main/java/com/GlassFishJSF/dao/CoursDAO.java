@@ -7,6 +7,7 @@ import jakarta.persistence.PersistenceContext;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,5 +102,13 @@ public class CoursDAO {
         if (!last.isEmpty()) boundaries.put("last", last.get(0));
 
         return boundaries;
+    }
+
+    public List<Cours> findAllUpcomingCourses(ZonedDateTime now) {
+        return em.createQuery(
+                        "SELECT c FROM Cours c WHERE c.timestampDebut >= :today " +
+                                "ORDER BY c.timestampDebut ASC", Cours.class)
+                .setParameter("today", java.sql.Timestamp.from(now.withHour(0).withMinute(0).toInstant()))
+                .getResultList();
     }
 }
